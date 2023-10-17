@@ -1,6 +1,10 @@
 import pygame
 import config
+import utilities
 
+# ----------------------------------------
+# Initialise the simulation
+# ----------------------------------------
 def init():
     simVars = {
         # World Points
@@ -13,13 +17,23 @@ def init():
         "farClip": [100],
         "nearClip": [1],
 
-        # Other variables
-        "screenResolution": config.RESOLUTION,
+        # Loading variables from config.py
+        "resolution": config.RESOLUTION,
+        "overlay_size": (config.OVERLAY_SIZE[0]/100 * config.RESOLUTION[0], config.OVERLAY_SIZE[1]/100 * config.RESOLUTION[1]),
+        "overlay_pos": (config.OVERLAY_POS[0]/100 * config.RESOLUTION[0], config.OVERLAY_POS[1]/100 * config.RESOLUTION[1]),
+        "color_overlay_bg": config.COLOR_OVERLAY_BG,
+        "color_overlay_border": config.COLOR_OVERLAY_BORDER,
+        "color_overlay_txt": config.COLOR_OVERLAY_TXT,
+        "color_points": config.COLOR_POINTS,
+        "hide_overlay": config.HIDE_OVERLAY,
+
         "clock": pygame.time.Clock(),
-        "hideOverlay": False,
     }
     return simVars
 
+# ----------------------------------------
+# Main loop
+# ----------------------------------------
 def loop(simVars, screen):
 
     running = True
@@ -32,17 +46,20 @@ def loop(simVars, screen):
         # Limit fps
         simVars["clock"].tick(60)
 
+# ----------------------------------------
+# Event and input handling
+# ----------------------------------------
 def handleEvents(simVars):
     for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
             if event.type == pygame.VIDEORESIZE:
-                simVars["screenResolution"] = event.size
+                utilities.updateVarsOnResize(simVars)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
                 if event.key == pygame.K_SPACE:
-                    simVars["hideOverlay"] = not simVars["hideOverlay"]
+                    simVars["hide_overlay"] = not simVars["hide_overlay"]
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_s]:
@@ -58,6 +75,9 @@ def handleEvents(simVars):
     if keys[pygame.K_a]:
         simVars["cameraCoords"][1] -= 0.05
 
+# ----------------------------------------
+# Drawing functions
+# ----------------------------------------
 def handleDisplay(simVars, screen):
 
     camera = simVars["cameraCoords"]
@@ -69,18 +89,28 @@ def handleDisplay(simVars, screen):
     # Math out the 3d points on the canvas (1 unit away from the camera)
     for i in range(len(simVars["points"])):
         point = simVars["points"][i]
-        resolution = simVars["screenResolution"]
+        resolution = simVars["resolution"]
         ratio = resolution[0]/resolution[1]
-        # Rounding isn't great
-        coords = [(point[0] - camera[0])/(point[2] - camera[2]) * ratio * 300 + resolution[0]/2, (point[1] - camera[1])/(-(point[2] - camera[2])) * ratio * 300 + resolution[1]/2]
+
+
+        # For both axes :
+        # x - cameraX (input camera movement)
+        # / (z - cameraZ) Thales theorem
+        # * ratio (to keep the ratio on resize)
+        # * 300 (to scale up the points) //// 300 is arbitrary
+
+        screen_x = (point[0] - camera[0])/(point[2] - camera[2]) * ratio * 300 + resolution[0]/2
+        screen_y = (point[1] - camera[1])/(-(point[2] - camera[2])) * ratio * 300 + resolution[1]/2
+
+        coords = [screen_x, screen_y]
         canvasPoints.append(coords)
     
     # Draw the points
     for point in canvasPoints:
-        pygame.draw.circle(screen, (255, 255, 255), point, 3)
+        pygame.draw.circle(screen, simVars["color_points"], point, 3)
 
     # Draw the overlay
-    if(not simVars["hideOverlay"]):
+    if(not simVars["hide_overlay"]):
         drawOverlay(simVars, screen)
 
     # Apply changes to screen
@@ -90,20 +120,22 @@ def drawOverlay(simVars, screen):
     font = pygame.font.SysFont("Roboto", 30)
     points = simVars["points"]
 
-    overlay_w = config.OVERLAY_SIZE[0]
-    overlay_h = config.OVERLAY_SIZE[1]
+    overlay_w = simVars["overlay_size"][0]
+    overlay_h = simVars["overlay_size"][1]
 
     hud = pygame.Surface((overlay_w, overlay_h), pygame.SRCALPHA)
 
-    pygame.draw.rect(hud, config.COLOR_OVERLAY_BG, (0, 0, overlay_w, overlay_h), 0, 10)
-    pygame.draw.rect(hud, config.COLOR_OVERLAY_BORDER, (0, 0, overlay_w, overlay_h), 2, 10)
+    pygame.draw.rect(hud, simVars["color_overlay_bg"], (0, 0, overlay_w, overlay_h), 0, 10)
+    pygame.draw.rect(hud, simVars["color_overlay_border"], (0, 0, overlay_w, overlay_h), 2, 10)
 
-    text = font.render("Points: " + str(points), True, config.COLOR_OVERLAY_TXT)
+    text = font.render("Points: " + str(points), True, simVars["color_overlay_txt"])
     text_rect = text.get_rect(center=(overlay_w/2, overlay_h/3))
     hud.blit(text, text_rect)
 
-    text = font.render("Camera: " + str(simVars["cameraCoords"]), True, config.COLOR_OVERLAY_TXT)
+    text = font.render("Camera: " + str(simVars["cameraCoords"]), True, simVars["color_overlay_txt"])
     text_rect = text.get_rect(center=(overlay_w/2, 2*overlay_h/3))
     hud.blit(text, text_rect)
 
-    screen.blit(hud, config.OVERLAY_POS)
+
+    screen.blit(hud, simVars["overlay_pos"])
+

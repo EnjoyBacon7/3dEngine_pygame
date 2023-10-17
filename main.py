@@ -9,7 +9,7 @@ def main():
     simVars = simulation.init()
 
     # Define some initial Points
-    loadObj(simVars, "hmm.obj")
+    loadObj(simVars, "Default_Cube_Simple.obj")
 
     # Start the simulation
     simulation.loop(simVars, screen)
@@ -18,7 +18,7 @@ def main():
 def initPygame():
     pygame.init()
     screen = pygame.display.set_mode(config.RESOLUTION, pygame.RESIZABLE)
-    pygame.display.set_caption("3dEngine")
+    pygame.display.set_caption("3dEngine Pygame")
     return screen
 
 def loadObj(simVars, fileName):
