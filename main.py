@@ -22,7 +22,7 @@ def initPygame():
     return screen
 
 def loadObj(simVars, fileName):
-    object = open("obj files/" + fileName, "r")
+    object = open("obj_files/" + fileName, "r")
     lines = object.readlines()
     lines = list(filter(lambda x: x[0] == "v", lines))
     for i in range(len(lines)):
