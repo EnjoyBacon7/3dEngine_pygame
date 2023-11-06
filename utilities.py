@@ -54,6 +54,8 @@ def vec3tovec2(simVars, point):
         screen_x = relative_x * ratio * simVars["scale"] + resolution[0]/2
         screen_y = relative_y * ratio * simVars["scale"] + resolution[1]/2
 
+        simVars["log"][simVars["render_mode"]]["rendered_points"] += 1
+
         return (screen_x, screen_y)
 
 def getColor(simVars, point):   
