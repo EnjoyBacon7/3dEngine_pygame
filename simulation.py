@@ -162,13 +162,17 @@ def handleDisplay(simVars, screen):
 
     if simVars["enable_logging"]:
         # Log the render time for this frame
-        simVars["log"][simVars["render_mode"]]["render_time"].append(time.time() - timestamp)
-        ### Updating these values every frame is not optimal
-        simVars["log"][simVars["render_mode"]]["rendered_points"] = simVars["log"]["rendered_points"]
-        simVars["log"][simVars["render_mode"]]["rendered_faces"] = simVars["log"]["rendered_faces"]
+        simVars["log"][simVars["render_mode"]]["render_time"].append(
+            time.time() - timestamp)
+        # Updating these values every frame is not optimal
+        simVars["log"][simVars["render_mode"]
+                       ]["rendered_points"] = simVars["log"][simVars["render_mode"]]["rendered_points"]
+        simVars["log"][simVars["render_mode"]
+                       ]["rendered_faces"] = simVars["log"][simVars["render_mode"]]["rendered_faces"]
         simVars["frame_nb"] += 1
         if simVars["frame_nb"] == config.LOG_NB_FRAMES or timestamp - simVars["start_timestamp"] > config.LOG_MAX_TIME:
             simVars["start_timestamp"] = timestamp
+            simVars["frame_nb"] = 0
             match simVars["render_mode"]:
                 case "points":
                     simVars["render_mode"] = "wireframe"
@@ -183,34 +187,35 @@ def handleDisplay(simVars, screen):
 
 def drawWorld(simVars, screen):
 
-    simVars["log"]["rendered_points"] = 0
-    simVars["log"]["rendered_edges"] = 0
-    simVars["log"]["rendered_faces"] = 0
-
     # Math out the 3d points on the canvas (1 unit away from the camera)
     if (simVars["render_mode"] == "wireframe"):
+        simVars["log"]["wireframe"]["rendered_points"] = 0
+        simVars["log"]["wireframe"]["rendered_faces"] = 0
         for object in simVars["gameObjects"]:
+            pre_baked_points = []
+            pre_baked_colors = []
+            for point in object["points"]:
+                pre_baked_points.append(utilities.vec3tovec2(simVars, point))
+                pre_baked_colors.append(utilities.getColor(simVars, point))
+
             for face in object["faces"]:
                 face_2D = [
-                    utilities.vec3tovec2(
-                        simVars, object["points"][face[0] - 1]),
-                    utilities.vec3tovec2(
-                        simVars, object["points"][face[1] - 1]),
-                    utilities.vec3tovec2(
-                        simVars, object["points"][face[2] - 1]),
-                ]
+                    pre_baked_points[face[0] - 1],
+                    pre_baked_points[face[1] - 1],
+                    pre_baked_points[face[2] - 1]]
                 colors = [
-                    utilities.getColor(simVars, object["points"][face[0] - 1]),
-                    utilities.getColor(simVars, object["points"][face[1] - 1]),
-                    utilities.getColor(simVars, object["points"][face[2] - 1]),
+                    pre_baked_colors[face[0] - 1],
+                    pre_baked_colors[face[1] - 1],
+                    pre_baked_colors[face[2] - 1]
                 ]
 
-                simVars["log"]["rendered_points"] += 3
                 pygame.draw.line(screen, colors[0], face_2D[0], face_2D[1])
                 pygame.draw.line(screen, colors[1], face_2D[1], face_2D[2])
                 pygame.draw.line(screen, colors[2], face_2D[2], face_2D[0])
 
     elif (simVars["render_mode"] == "solid"):
+        simVars["log"]["solid"]["rendered_points"] = 0
+        simVars["log"]["solid"]["rendered_faces"] = 0
         for i in range(len(simVars["gameObjects"])):
             object = simVars["gameObjects"][i]
             for j in range(len(object["faces"])):
@@ -226,11 +231,12 @@ def drawWorld(simVars, screen):
                 color = utilities.getColor(
                     simVars, object["points"][face[0] - 1])
 
-                simVars["log"]["rendered_points"] += 3
-                simVars["log"]["rendered_faces"] += 1
+                simVars["log"]["solid"]["rendered_faces"] += 1
                 pygame.draw.polygon(screen, color, face_2D)
 
     elif (simVars["render_mode"] == "points"):
+        simVars["log"]["points"]["rendered_points"] = 0
+        simVars["log"]["points"]["rendered_faces"] = 0
         for i in range(len(simVars["gameObjects"])):
             object = simVars["gameObjects"][i]
             for j in range(len(object["points"])):
@@ -238,7 +244,6 @@ def drawWorld(simVars, screen):
                 color = utilities.getColor(simVars, object["points"][j])
 
                 # Draw the point
-                simVars["log"]["rendered_points"] += 1
                 pygame.draw.circle(screen, color, point_2D, 3)
 
 
@@ -283,15 +288,17 @@ def drawOverlay(simVars, screen):
     frame_time = time.time() - simVars["fps_timestamp"]
 
     text.append(font.render("n° of points: " +
-                str(simVars["log"]["rendered_points"]), True, simVars["color_overlay_txt"]))
+                str(simVars["log"][simVars["render_mode"]]["rendered_points"]), True, simVars["color_overlay_txt"]))
     text.append(font.render("n° of faces: " +
-                str(simVars["log"]["rendered_faces"]), True, simVars["color_overlay_txt"]))
+                str(simVars["log"][simVars["render_mode"]]["rendered_faces"]), True, simVars["color_overlay_txt"]))
     text.append(font.render("FPS: " + str(round(1/frame_time, 5)),
                 True, simVars["color_overlay_txt"]))
     text.append(font.render(
         "Camera: " + str([round(num, 2) for num in simVars["cameraCoords"]]), True, simVars["color_overlay_txt"]))
-    text.append(font.render("Frames: " + str(simVars["frame_nb"]), True, simVars["color_overlay_txt"]))
-    text.append(font.render("Runtime: " + str(round(time.time() - simVars["start_timestamp"], 3)), True, simVars["color_overlay_txt"]))
+    text.append(font.render(
+        "Frames: " + str(simVars["frame_nb"]), True, simVars["color_overlay_txt"]))
+    text.append(font.render("Runtime: " + str(round(time.time() -
+                simVars["start_timestamp"], 3)), True, simVars["color_overlay_txt"]))
 
     for i in range(len(text)):
         rect = text[i].get_rect(
