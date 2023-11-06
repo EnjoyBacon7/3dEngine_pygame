@@ -9,7 +9,9 @@ def main():
     simVars = simulation.init()
 
     # Define some initial Points
-    loadObj(simVars, "Default_Cube_Simple.obj")
+    cube = loadGameObjectObj("my_cube.obj")
+
+    simVars["gameObjects"].append(cube)
 
     # Start the simulation
     simulation.loop(simVars, screen)
@@ -21,20 +23,24 @@ def initPygame():
     pygame.display.set_caption("3dEngine Pygame")
     return screen
 
-def loadObj(simVars, fileName):
-    object = open("obj_files/" + fileName, "r")
-    lines = object.readlines()
-    lines = list(filter(lambda x: x[0] == "v", lines))
+def loadGameObjectObj(fileName):
+    objectFile = open("obj_files/" + fileName, "r")
+    lines = objectFile.readlines()
+    lines = list(filter(lambda x: x[0] == "v" and x[1] == " ", lines))
     for i in range(len(lines)):
         lines[i] = lines[i][2:-2].split(" ")
         for j in range(len(lines[i])):
             lines[i][j] = float(lines[i][j])
     points = lines
+    print(points)
 
-    simVars["points"] = points
-    
-    
+    object = {
+        "points": points
+    }
 
+    objectFile.close()
+
+    return object
 
 if __name__ == "__main__":
     main()
