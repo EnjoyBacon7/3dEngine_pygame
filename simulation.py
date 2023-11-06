@@ -33,7 +33,8 @@ def init(args):
         "show_overlay": args.overlay,
 
         # Rendering variables
-        "render_mode": "points" if args.log == True else config.RENDER_MODE,  # "wireframe", "solid", or "points"
+        # "wireframe", "solid", or "points"
+        "render_mode": "points" if args.log == True else config.RENDER_MODE,
 
         "running": True,
         "fps_timestamp": 0,
@@ -189,7 +190,18 @@ def handleDisplay(simVars, screen):
 def drawWorld(simVars, screen):
 
     # Math out the 3d points on the canvas (1 unit away from the camera)
-    if (simVars["render_mode"] == "wireframe"):
+    if (simVars["render_mode"] == "points"):
+        simVars["log"]["points"]["rendered_points"] = 0
+        simVars["log"]["points"]["rendered_faces"] = 0
+        for object in simVars["gameObjects"]:
+            for point in object["points"]:
+                point_2D = utilities.vec3tovec2(simVars, point)
+                color = utilities.getColor(simVars, point)
+
+                # Draw the point
+                pygame.draw.circle(screen, color, point_2D, 3)
+
+    elif (simVars["render_mode"] == "wireframe"):
         simVars["log"]["wireframe"]["rendered_points"] = 0
         simVars["log"]["wireframe"]["rendered_faces"] = 0
         for object in simVars["gameObjects"]:
@@ -217,8 +229,7 @@ def drawWorld(simVars, screen):
     elif (simVars["render_mode"] == "solid"):
         simVars["log"]["solid"]["rendered_points"] = 0
         simVars["log"]["solid"]["rendered_faces"] = 0
-        for i in range(len(simVars["gameObjects"])):
-            object = simVars["gameObjects"][i]
+        for object in simVars["gameObjects"]:
             pre_baked_points = []
             pre_baked_colors = []
 
@@ -226,8 +237,7 @@ def drawWorld(simVars, screen):
                 pre_baked_points.append(utilities.vec3tovec2(simVars, point))
                 pre_baked_colors.append(utilities.getColor(simVars, point))
 
-            for j in range(len(object["faces"])):
-                face = object["faces"][j]
+            for face in object["faces"]:
                 face_2D = [
                     pre_baked_points[face[0] - 1],
                     pre_baked_points[face[1] - 1],
@@ -235,21 +245,9 @@ def drawWorld(simVars, screen):
                 ]
                 color = pre_baked_colors[face[0] - 1]
 
-                ### Color gradient not implemented
+                # Color gradient not implemented
                 simVars["log"]["solid"]["rendered_faces"] += 1
                 pygame.draw.polygon(screen, color, face_2D)
-
-    elif (simVars["render_mode"] == "points"):
-        simVars["log"]["points"]["rendered_points"] = 0
-        simVars["log"]["points"]["rendered_faces"] = 0
-        for i in range(len(simVars["gameObjects"])):
-            object = simVars["gameObjects"][i]
-            for j in range(len(object["points"])):
-                point_2D = utilities.vec3tovec2(simVars, object["points"][j])
-                color = utilities.getColor(simVars, object["points"][j])
-
-                # Draw the point
-                pygame.draw.circle(screen, color, point_2D, 3)
 
 
 def drawGrid(simVars, screen):
