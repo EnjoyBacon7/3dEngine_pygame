@@ -11,9 +11,14 @@ def plot_log(log):
 
     graph_plot = fig.add_subplot(211)
 
-    graph_plot.plot(log["points"]["render_time"], label="points frametime")
-    graph_plot.plot(log["wireframe"]["render_time"], label="wireframe frametime")
-    graph_plot.plot(log["solid"]["render_time"], label="solid frametime")
+    sec_to_ms = lambda x: x * 1000
+    points_ms = list(map(sec_to_ms, log["points"]["render_time"]))
+    wireframe_ms = list(map(sec_to_ms, log["wireframe"]["render_time"]))
+    solid_ms = list(map(sec_to_ms, log["solid"]["render_time"]))
+
+    graph_plot.plot(points_ms, label="points frametime")
+    graph_plot.plot(wireframe_ms, label="wireframe frametime")
+    graph_plot.plot(solid_ms, label="solid frametime")
 
     graph_plot.set_xlabel("Frame")
     graph_plot.set_ylabel("Time (ms)")
@@ -34,6 +39,8 @@ def plot_log(log):
             spine.set_linewidth(0.75)
             spine.set_color('black')
 
+        avg_fps = round(1 / (sum(log[plot_types[i]]["render_time"]) / len(log[plot_types[i]]["render_time"])), 2)
+
         plot_pos = info_plots[i].get_position().bounds
         new_pos = [plot_pos[0], plot_pos[1], plot_pos[2], plot_pos[3] - 0.05]
         info_plots[i].set_position(new_pos)
@@ -41,6 +48,8 @@ def plot_log(log):
         info_plots[i].text(0.1, 0.7, "Vertices: " + str(log[plot_types[i]]["rendered_points"]))
         info_plots[i].text(0.1, 0.6, "Faces: " + str(log[plot_types[i]]["rendered_faces"]))
         info_plots[i].text(0.1, 0.5, "Resolution: " + str(log["resolution"][0]) + "x" + str(log["resolution"][1]))
+        info_plots[i].text(0.1, 0.4, "Avg FPS: " + str(avg_fps))
+        info_plots[i].text(0.1, 0.3, "Test time: " + str(round(log[plot_types[i]]["test_time"], 3)) + "s")
 
     plt.suptitle(fig_title, fontsize=16)
     plt.savefig("graphs/" + formatted_time + ".svg")
