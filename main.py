@@ -1,12 +1,16 @@
 import pygame
 import config
 import simulation
+import args
 
 def main():
 
+    # Retrieve arguments from the command line
+    runtime_arguments = args.init()
+
     # Initialise pygame and the simulation
-    screen = initPygame()
-    simVars = simulation.init()
+    screen = initPygame(runtime_arguments)
+    simVars = simulation.init(runtime_arguments)
 
     # Define some initial Points
     cube = loadGameObjectObj("my_cube.obj")
@@ -17,9 +21,9 @@ def main():
     simulation.loop(simVars, screen)
 
 
-def initPygame():
+def initPygame(args):
     pygame.init()
-    screen = pygame.display.set_mode(config.RESOLUTION, pygame.RESIZABLE)
+    screen = pygame.display.set_mode(args.resolution)
     pygame.display.set_caption("3dEngine Pygame")
     return screen
 
