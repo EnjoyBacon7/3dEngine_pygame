@@ -125,9 +125,9 @@ def handleEvents(simVars):
             object = simVars["gameObjects"][i]
             for j in range(len(object["points"])):
                 if keys[pygame.K_DOWN]:
-                    object["points"][j] -= 0.05
+                    object["points"][j][1] -= 0.05
                 if keys[pygame.K_UP]:
-                    object["points"][j] += 0.05
+                    object["points"][j][1] += 0.05
 
     mouse_move = pygame.mouse.get_rel()
     simVars["cameraRot"][0] += mouse_move[1]/100
