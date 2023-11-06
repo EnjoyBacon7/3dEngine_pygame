@@ -1,9 +1,12 @@
 import matplotlib.pyplot as plt
-import time
+from datetime import datetime
 
 def plot_log(log):
     
     fig = plt.figure()
+    current_time = datetime.now()
+    formatted_time = current_time.strftime("%d-%m-%Y %H:%M:%S")
+    fig_title = "Frame time graph - " + formatted_time
 
     graph_plot = fig.add_subplot(211)
 
@@ -37,4 +40,6 @@ def plot_log(log):
         info_plots[i].text(0.1, 0.7, "Points: " + str(log[plot_types[i]]["rendered_points"]))
         info_plots[i].text(0.1, 0.6, "Faces: " + str(log[plot_types[i]]["rendered_faces"]))
 
+    plt.suptitle(fig_title, fontsize=16)
+    plt.savefig("graphs/" + formatted_time + ".png")
     plt.show()
