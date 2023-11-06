@@ -134,6 +134,9 @@ def handleDisplay(simVars, screen):
 
 def drawWorld(simVars, screen):
 
+    simVars["log"]["rendered_points"] = 0
+    simVars["log"]["rendered_edges"] = 0
+    simVars["log"]["rendered_faces"] = 0
 
     # Math out the 3d points on the canvas (1 unit away from the camera)
     if (simVars["render_mode"] == "wireframe"):
@@ -205,27 +208,30 @@ def drawGrid(simVars, screen):
         pygame.draw.line(screen, color, coords_s, coords_e, 1)
 
 
-
 def drawOverlay(simVars, screen):
     font = pygame.font.SysFont("Roboto", 30)
-    points = simVars["gameObjects"][0]["points"]
 
     overlay_w = simVars["overlay_size"][0]
     overlay_h = simVars["overlay_size"][1]
 
     hud = pygame.Surface((overlay_w, overlay_h), pygame.SRCALPHA)
 
-    pygame.draw.rect(hud, simVars["color_overlay_bg"], (0, 0, overlay_w, overlay_h), 0, 10)
-    pygame.draw.rect(hud, simVars["color_overlay_border"], (0, 0, overlay_w, overlay_h), 2, 10)
+    pygame.draw.rect(hud, simVars["color_overlay_bg"],
+                     (0, 0, overlay_w, overlay_h), 0, 10)
+    pygame.draw.rect(hud, simVars["color_overlay_border"],
+                     (0, 0, overlay_w, overlay_h), 2, 10)
 
-    text = font.render("Points: " + str(points), True, simVars["color_overlay_txt"])
-    text_rect = text.get_rect(center=(overlay_w/2, overlay_h/3))
-    hud.blit(text, text_rect)
+    # Overlay content
+    text = []
 
-    text = font.render("Camera: " + str(simVars["cameraCoords"]), True, simVars["color_overlay_txt"])
-    text_rect = text.get_rect(center=(overlay_w/2, 2*overlay_h/3))
-    hud.blit(text, text_rect)
+    text.append(font.render("n° of points: " + str(simVars["log"]["rendered_points"]), True, simVars["color_overlay_txt"]))
+    text.append(font.render("n° of faces: " + str(simVars["log"]["rendered_faces"]), True, simVars["color_overlay_txt"]))
+    text.append(font.render("FPS: " + str(round(simVars["clock"].get_fps(), 2)), True, simVars["color_overlay_txt"]))
+    text.append(font.render("Camera: " + str([round(num, 2) for num in simVars["cameraCoords"]]), True, simVars["color_overlay_txt"]))
 
+
+    for i in range(len(text)):
+        rect = text[i].get_rect(centery=((i+1)*overlay_h/(len(text)+1)), left=10)
+        hud.blit(text[i], rect)
 
     screen.blit(hud, simVars["overlay_pos"])
-
