@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from datetime import datetime
+import json
 
 def plot_log(log):
     
@@ -42,4 +43,8 @@ def plot_log(log):
 
     plt.suptitle(fig_title, fontsize=16)
     plt.savefig("graphs/" + formatted_time + ".svg")
+
+    f = open("graphs/" + formatted_time + ".json", "w")
+    f.write(json.dumps(log))
+
     plt.show()
