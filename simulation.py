@@ -34,8 +34,8 @@ def init(args):
 
         # Rendering variables
         # "wireframe", "solid", or "points"
-        "render_mode": "points" if args.log == True else config.RENDER_MODE,
-
+        "render_mode": "points" if args.log == True else args.render_mode,
+        
         "running": True,
         "fps_timestamp": 0,
 
@@ -50,16 +50,19 @@ def init(args):
                 "rendered_points": 0,
                 "rendered_faces": 0,
                 "render_time": [],
+                "test_time": 0,
             },
             "wireframe": {
                 "rendered_points": 0,
                 "rendered_faces": 0,
                 "render_time": [],
+                "test_time": 0,
             },
             "solid": {
                 "rendered_points": 0,
                 "rendered_faces": 0,
                 "render_time": [],
+                "test_time": 0,
             },
         }
     }
@@ -173,6 +176,7 @@ def handleDisplay(simVars, screen):
                        ]["rendered_faces"] = simVars["log"][simVars["render_mode"]]["rendered_faces"]
         simVars["frame_nb"] += 1
         if simVars["frame_nb"] == config.LOG_NB_FRAMES or timestamp - simVars["start_timestamp"] > config.LOG_MAX_TIME:
+            simVars["log"][simVars["render_mode"]]["test_time"] = timestamp - simVars["start_timestamp"]
             simVars["start_timestamp"] = timestamp
             simVars["frame_nb"] = 0
             match simVars["render_mode"]:
