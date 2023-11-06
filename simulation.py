@@ -33,12 +33,14 @@ def init(args):
         "show_overlay": args.overlay,
 
         # Rendering variables
-        "render_mode": args.render_mode,  # "wireframe", "solid", or "points"
+        "render_mode": "points" if args.log == True else config.RENDER_MODE,  # "wireframe", "solid", or "points"
 
         "running": True,
         "fps_timestamp": 0,
 
         # Logging variables
+        "start_timestamp": time.time(),
+        "frame_nb": 0,
         "enable_logging": args.log,
         "log": {
             "target_fps": args.fps,
@@ -158,11 +160,22 @@ def handleDisplay(simVars, screen):
     # Apply changes to screen
     pygame.display.flip()
 
-    # Log the render time for this frame
-    simVars["log"][simVars["render_mode"]]["render_time"].append(time.time() - timestamp)
-    ### Updating these values every frame is not optimal
-    simVars["log"][simVars["render_mode"]]["rendered_points"] = simVars["log"]["rendered_points"]
-    simVars["log"][simVars["render_mode"]]["rendered_faces"] = simVars["log"]["rendered_faces"]
+    if simVars["enable_logging"]:
+        # Log the render time for this frame
+        simVars["log"][simVars["render_mode"]]["render_time"].append(time.time() - timestamp)
+        ### Updating these values every frame is not optimal
+        simVars["log"][simVars["render_mode"]]["rendered_points"] = simVars["log"]["rendered_points"]
+        simVars["log"][simVars["render_mode"]]["rendered_faces"] = simVars["log"]["rendered_faces"]
+        simVars["frame_nb"] += 1
+        if simVars["frame_nb"] == config.LOG_NB_FRAMES or timestamp - simVars["start_timestamp"] > config.LOG_MAX_TIME:
+            simVars["start_timestamp"] = timestamp
+            match simVars["render_mode"]:
+                case "points":
+                    simVars["render_mode"] = "wireframe"
+                case "wireframe":
+                    simVars["render_mode"] = "solid"
+                case "solid":
+                    simVars["running"] = False
 
     # Update the fps timestamp (storing this frame's timestamp)
     simVars["fps_timestamp"] = timestamp
@@ -277,6 +290,8 @@ def drawOverlay(simVars, screen):
                 True, simVars["color_overlay_txt"]))
     text.append(font.render(
         "Camera: " + str([round(num, 2) for num in simVars["cameraCoords"]]), True, simVars["color_overlay_txt"]))
+    text.append(font.render("Frames: " + str(simVars["frame_nb"]), True, simVars["color_overlay_txt"]))
+    text.append(font.render("Runtime: " + str(round(time.time() - simVars["start_timestamp"], 3)), True, simVars["color_overlay_txt"]))
 
     for i in range(len(text)):
         rect = text[i].get_rect(
