@@ -1,6 +1,8 @@
 RESOLUTION = (720, 720) # px
 SHOW_OVERLAY = False
 RENDER_MODE = "solid"
+LOG_NB_FRAMES = 1000
+LOG_MAX_TIME = 60 # s
 
 
 
