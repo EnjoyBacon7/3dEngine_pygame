@@ -41,5 +41,5 @@ def plot_log(log):
         info_plots[i].text(0.1, 0.6, "Faces: " + str(log[plot_types[i]]["rendered_faces"]))
 
     plt.suptitle(fig_title, fontsize=16)
-    plt.savefig("graphs/" + formatted_time + ".png")
+    plt.savefig("graphs/" + formatted_time + ".svg")
     plt.show()
