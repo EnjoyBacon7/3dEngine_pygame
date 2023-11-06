@@ -42,6 +42,7 @@ def init(args):
         "start_timestamp": time.time(),
         "frame_nb": 0,
         "enable_logging": args.log,
+        "resolution": args.resolution,
         "log": {
             "target_fps": args.fps,
             "points": {

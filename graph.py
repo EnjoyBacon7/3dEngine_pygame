@@ -38,8 +38,9 @@ def plot_log(log):
         new_pos = [plot_pos[0], plot_pos[1], plot_pos[2], plot_pos[3] - 0.05]
         info_plots[i].set_position(new_pos)
         info_plots[i].text(0.5, 0.9, plot_types[i].capitalize() + " render", ha='center', va='center', size=11)
-        info_plots[i].text(0.1, 0.7, "Points: " + str(log[plot_types[i]]["rendered_points"]))
+        info_plots[i].text(0.1, 0.7, "Vertices: " + str(log[plot_types[i]]["rendered_points"]))
         info_plots[i].text(0.1, 0.6, "Faces: " + str(log[plot_types[i]]["rendered_faces"]))
+        info_plots[i].text(0.1, 0.5, "Resolution: " + str(log["resolution"][0]) + "x" + str(log["resolution"][1]))
 
     plt.suptitle(fig_title, fontsize=16)
     plt.savefig("graphs/" + formatted_time + ".svg")
