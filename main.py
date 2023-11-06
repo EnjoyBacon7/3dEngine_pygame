@@ -25,17 +25,29 @@ def initPygame():
 
 def loadGameObjectObj(fileName):
     objectFile = open("obj_files/" + fileName, "r")
+    
     lines = objectFile.readlines()
-    lines = list(filter(lambda x: x[0] == "v" and x[1] == " ", lines))
-    for i in range(len(lines)):
-        lines[i] = lines[i][2:-2].split(" ")
-        for j in range(len(lines[i])):
-            lines[i][j] = float(lines[i][j])
-    points = lines
-    print(points)
+    pointLines = list(filter(lambda x: x[0] == "v" and x[1] == " ", lines))
+    for i in range(len(pointLines)):
+        pointLines[i] = pointLines[i][2:-2].split(" ")
+        for j in range(len(pointLines[i])):
+            pointLines[i][j] = float(pointLines[i][j])
+    points = pointLines
 
+    faceLines = list(filter(lambda x: x[0] == "f" and x[1] == " ", lines))
+    for i in range(len(faceLines)):
+        faceLines[i] = faceLines[i][2:-2].split(" ")
+        facePoints = [
+            int(faceLines[i][0].split("/")[0]),
+            int(faceLines[i][1].split("/")[0]),
+            int(faceLines[i][2].split("/")[0]),
+        ]
+        faceLines[i] = facePoints
+
+    faces = faceLines
     object = {
-        "points": points
+        "points": points,
+        "faces": faces
     }
 
     objectFile.close()
