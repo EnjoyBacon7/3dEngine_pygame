@@ -1,14 +1,15 @@
 import pygame
 import config
 import utilities
-import math
+import time
+import graph
 
 # ----------------------------------------
 # Initialise the simulation
 # ----------------------------------------
 
 
-def init():
+def init(args):
     simVars = {
         # World composition
         "gameObjects": [],
@@ -22,24 +23,40 @@ def init():
         "scale": config.SCALE,
 
         # Loading variables from config.py
-        "resolution": config.RESOLUTION,
+        "resolution": args.resolution,
         "overlay_size": (config.OVERLAY_SIZE[0]/100 * config.RESOLUTION[0], config.OVERLAY_SIZE[1]/100 * config.RESOLUTION[1]),
         "overlay_pos": (config.OVERLAY_POS[0]/100 * config.RESOLUTION[0], config.OVERLAY_POS[1]/100 * config.RESOLUTION[1]),
         "color_overlay_bg": config.COLOR_OVERLAY_BG,
         "color_overlay_border": config.COLOR_OVERLAY_BORDER,
         "color_overlay_txt": config.COLOR_OVERLAY_TXT,
         "color_points": config.COLOR_POINTS,
-        "hide_overlay": config.HIDE_OVERLAY,
+        "show_overlay": args.overlay,
 
         # Rendering variables
-        "render_mode": "solid",  # "wireframe", "solid", or "points"
+        "render_mode": args.render_mode,  # "wireframe", "solid", or "points"
 
-        "clock": pygame.time.Clock(),
+        "running": True,
+        "fps_timestamp": 0,
 
         # Logging variables
+        "enable_logging": args.log,
         "log": {
-            "rendered_points": 0,
-            "rendered_faces": 0,
+            "target_fps": args.fps,
+            "points": {
+                "rendered_points": 0,
+                "rendered_faces": 0,
+                "render_time": [],
+            },
+            "wireframe": {
+                "rendered_points": 0,
+                "rendered_faces": 0,
+                "render_time": [],
+            },
+            "solid": {
+                "rendered_points": 0,
+                "rendered_faces": 0,
+                "render_time": [],
+            },
         }
     }
     return simVars
@@ -51,15 +68,17 @@ def init():
 
 def loop(simVars, screen):
 
-    running = True
-    while running:
+    while simVars["running"]:
 
         # Handle input and events
         handleEvents(simVars)
         # Display on screen
         handleDisplay(simVars, screen)
-        # Limit fps
-        simVars["clock"].tick(120)
+
+    pygame.quit()
+    if simVars["enable_logging"]:
+        graph.plot_log(simVars["log"])
+
 
 # ----------------------------------------
 # Event and input handling
@@ -68,15 +87,16 @@ def loop(simVars, screen):
 
 def handleEvents(simVars):
     for event in pygame.event.get():
+        # A quit event does not warrant a plot. It is a request for immediate termination
         if event.type == pygame.QUIT:
             pygame.quit()
         if event.type == pygame.VIDEORESIZE:
             utilities.updateVarsOnResize(simVars)
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                pygame.quit()
+                simVars["running"] = False
             if event.key == pygame.K_SPACE:
-                simVars["hide_overlay"] = not simVars["hide_overlay"]
+                simVars["show_overlay"] = not simVars["show_overlay"]
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_s]:
@@ -116,6 +136,13 @@ def handleEvents(simVars):
 
 def handleDisplay(simVars, screen):
 
+    # Get the current time and calculate the time since the last frame
+    timestamp = time.time()
+    delta_time = timestamp - simVars["fps_timestamp"]
+    # If the time since the last frame is less than the target frame time, don't render
+    if (delta_time < 1/config.FPS):
+        return
+
     # Clear the screen
     screen.fill(config.COLOR_BG)
 
@@ -125,11 +152,20 @@ def handleDisplay(simVars, screen):
     # Draw the points
     drawWorld(simVars, screen)
     # Draw the overlay
-    if (not simVars["hide_overlay"]):
+    if (simVars["show_overlay"]):
         drawOverlay(simVars, screen)
 
     # Apply changes to screen
     pygame.display.flip()
+
+    # Log the render time for this frame
+    simVars["log"][simVars["render_mode"]]["render_time"].append(time.time() - timestamp)
+    ### Updating these values every frame is not optimal
+    simVars["log"][simVars["render_mode"]]["rendered_points"] = simVars["log"]["rendered_points"]
+    simVars["log"][simVars["render_mode"]]["rendered_faces"] = simVars["log"]["rendered_faces"]
+
+    # Update the fps timestamp (storing this frame's timestamp)
+    simVars["fps_timestamp"] = timestamp
 
 
 def drawWorld(simVars, screen):
@@ -143,9 +179,12 @@ def drawWorld(simVars, screen):
         for object in simVars["gameObjects"]:
             for face in object["faces"]:
                 face_2D = [
-                    utilities.vec3tovec2(simVars, object["points"][face[0] - 1]),
-                    utilities.vec3tovec2(simVars, object["points"][face[1] - 1]),
-                    utilities.vec3tovec2(simVars, object["points"][face[2] - 1]),
+                    utilities.vec3tovec2(
+                        simVars, object["points"][face[0] - 1]),
+                    utilities.vec3tovec2(
+                        simVars, object["points"][face[1] - 1]),
+                    utilities.vec3tovec2(
+                        simVars, object["points"][face[2] - 1]),
                 ]
                 colors = [
                     utilities.getColor(simVars, object["points"][face[0] - 1]),
@@ -164,11 +203,15 @@ def drawWorld(simVars, screen):
             for j in range(len(object["faces"])):
                 face = object["faces"][j]
                 face_2D = [
-                    utilities.vec3tovec2(simVars, object["points"][face[0] - 1]),
-                    utilities.vec3tovec2(simVars, object["points"][face[1] - 1]),
-                    utilities.vec3tovec2(simVars, object["points"][face[2] - 1]),
+                    utilities.vec3tovec2(
+                        simVars, object["points"][face[0] - 1]),
+                    utilities.vec3tovec2(
+                        simVars, object["points"][face[1] - 1]),
+                    utilities.vec3tovec2(
+                        simVars, object["points"][face[2] - 1]),
                 ]
-                color = utilities.getColor(simVars, object["points"][face[0] - 1])
+                color = utilities.getColor(
+                    simVars, object["points"][face[0] - 1])
 
                 simVars["log"]["rendered_points"] += 3
                 simVars["log"]["rendered_faces"] += 1
@@ -224,14 +267,20 @@ def drawOverlay(simVars, screen):
     # Overlay content
     text = []
 
-    text.append(font.render("n° of points: " + str(simVars["log"]["rendered_points"]), True, simVars["color_overlay_txt"]))
-    text.append(font.render("n° of faces: " + str(simVars["log"]["rendered_faces"]), True, simVars["color_overlay_txt"]))
-    text.append(font.render("FPS: " + str(round(simVars["clock"].get_fps(), 2)), True, simVars["color_overlay_txt"]))
-    text.append(font.render("Camera: " + str([round(num, 2) for num in simVars["cameraCoords"]]), True, simVars["color_overlay_txt"]))
+    frame_time = time.time() - simVars["fps_timestamp"]
 
+    text.append(font.render("n° of points: " +
+                str(simVars["log"]["rendered_points"]), True, simVars["color_overlay_txt"]))
+    text.append(font.render("n° of faces: " +
+                str(simVars["log"]["rendered_faces"]), True, simVars["color_overlay_txt"]))
+    text.append(font.render("FPS: " + str(round(1/frame_time, 5)),
+                True, simVars["color_overlay_txt"]))
+    text.append(font.render(
+        "Camera: " + str([round(num, 2) for num in simVars["cameraCoords"]]), True, simVars["color_overlay_txt"]))
 
     for i in range(len(text)):
-        rect = text[i].get_rect(centery=((i+1)*overlay_h/(len(text)+1)), left=10)
+        rect = text[i].get_rect(
+            centery=((i+1)*overlay_h/(len(text)+1)), left=10)
         hud.blit(text[i], rect)
 
     screen.blit(hud, simVars["overlay_pos"])
