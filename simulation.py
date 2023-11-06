@@ -42,8 +42,8 @@ def init(args):
         "start_timestamp": time.time(),
         "frame_nb": 0,
         "enable_logging": args.log,
-        "resolution": args.resolution,
         "log": {
+            "resolution": args.resolution,
             "target_fps": args.fps,
             "points": {
                 "rendered_points": 0,
@@ -210,28 +210,32 @@ def drawWorld(simVars, screen):
                     pre_baked_colors[face[2] - 1]
                 ]
 
-                pygame.draw.line(screen, colors[0], face_2D[0], face_2D[1])
-                pygame.draw.line(screen, colors[1], face_2D[1], face_2D[2])
-                pygame.draw.line(screen, colors[2], face_2D[2], face_2D[0])
+                pygame.draw.line(screen, colors[0], face_2D[0], face_2D[1], 1)
+                pygame.draw.line(screen, colors[1], face_2D[1], face_2D[2], 1)
+                pygame.draw.line(screen, colors[2], face_2D[2], face_2D[0], 1)
 
     elif (simVars["render_mode"] == "solid"):
         simVars["log"]["solid"]["rendered_points"] = 0
         simVars["log"]["solid"]["rendered_faces"] = 0
         for i in range(len(simVars["gameObjects"])):
             object = simVars["gameObjects"][i]
+            pre_baked_points = []
+            pre_baked_colors = []
+
+            for point in object["points"]:
+                pre_baked_points.append(utilities.vec3tovec2(simVars, point))
+                pre_baked_colors.append(utilities.getColor(simVars, point))
+
             for j in range(len(object["faces"])):
                 face = object["faces"][j]
                 face_2D = [
-                    utilities.vec3tovec2(
-                        simVars, object["points"][face[0] - 1]),
-                    utilities.vec3tovec2(
-                        simVars, object["points"][face[1] - 1]),
-                    utilities.vec3tovec2(
-                        simVars, object["points"][face[2] - 1]),
+                    pre_baked_points[face[0] - 1],
+                    pre_baked_points[face[1] - 1],
+                    pre_baked_points[face[2] - 1]
                 ]
-                color = utilities.getColor(
-                    simVars, object["points"][face[0] - 1])
+                color = pre_baked_colors[face[0] - 1]
 
+                ### Color gradient not implemented
                 simVars["log"]["solid"]["rendered_faces"] += 1
                 pygame.draw.polygon(screen, color, face_2D)
 
