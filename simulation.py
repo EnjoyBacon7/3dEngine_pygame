@@ -158,7 +158,7 @@ def handleDisplay(simVars, screen):
     screen.fill(config.COLOR_BG)
 
     # Draw the grid
-    # drawGrid(simVars, screen)
+    drawGrid(simVars, screen)
 
     # Draw the points
     drawWorld(simVars, screen)
@@ -180,7 +180,8 @@ def handleDisplay(simVars, screen):
                        ]["rendered_faces"] = simVars["log"][simVars["render_mode"]]["rendered_faces"]
         simVars["frame_nb"] += 1
         if simVars["frame_nb"] == config.LOG_NB_FRAMES or timestamp - simVars["start_timestamp"] > config.LOG_MAX_TIME:
-            simVars["log"][simVars["render_mode"]]["test_time"] = timestamp - simVars["start_timestamp"]
+            simVars["log"][simVars["render_mode"]
+                           ]["test_time"] = timestamp - simVars["start_timestamp"]
             simVars["start_timestamp"] = timestamp
             simVars["frame_nb"] = 0
             match simVars["render_mode"]:
