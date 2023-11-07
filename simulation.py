@@ -93,6 +93,10 @@ def loop(simVars, screen):
 
 
 def handleEvents(simVars):
+
+    timestamp = time.time()
+    delta_time = timestamp - simVars["fps_timestamp"]
+
     for event in pygame.event.get():
         # A quit event does not warrant a plot. It is a request for immediate termination
         if event.type == pygame.QUIT:
@@ -107,17 +111,17 @@ def handleEvents(simVars):
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_s]:
-        simVars["cameraCoords"][2] -= 0.05
+        simVars["cameraCoords"][2] -= 0.05*delta_time
     if keys[pygame.K_z]:
-        simVars["cameraCoords"][2] += 0.05
+        simVars["cameraCoords"][2] += 0.05*delta_time
     if keys[pygame.K_q]:
-        simVars["cameraCoords"][0] -= 0.05
+        simVars["cameraCoords"][0] -= 0.05*delta_time
     if keys[pygame.K_d]:
-        simVars["cameraCoords"][0] += 0.05
+        simVars["cameraCoords"][0] += 0.05*delta_time
     if keys[pygame.K_e]:
-        simVars["cameraCoords"][1] += 0.05
+        simVars["cameraCoords"][1] += 0.05*delta_time
     if keys[pygame.K_a]:
-        simVars["cameraCoords"][1] -= 0.05
+        simVars["cameraCoords"][1] -= 0.05*delta_time
     if keys[pygame.K_b]:
         simVars["scale"] += 1
     if keys[pygame.K_n]:
