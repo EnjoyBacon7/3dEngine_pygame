@@ -24,6 +24,8 @@ def main():
 def initPygame(args):
     pygame.init()
     screen = pygame.display.set_mode(args.resolution)
+    pygame.mouse.set_visible(False)
+    pygame.event.set_grab(True)
     pygame.display.set_caption("3dEngine Pygame")
     return screen
 
