@@ -18,8 +18,8 @@ def init(args):
         "cameraCoords": [0, 0, -5],
         "cameraRot": [0, 0, 0],
         "fov": 90,
-        "farClip": [100],
-        "nearClip": [1],
+        "farClip": 100,
+        "nearClip": 1,
         "scale": config.SCALE,
 
         # Loading variables from config.py
