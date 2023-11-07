@@ -49,7 +49,8 @@ def plot_log(log):
         info_plots[i].text(0.1, 0.6, "Faces: " + str(log[plot_types[i]]["rendered_faces"]))
         info_plots[i].text(0.1, 0.5, "Resolution: " + str(log["resolution"][0]) + "x" + str(log["resolution"][1]))
         info_plots[i].text(0.1, 0.4, "Avg FPS: " + str(avg_fps))
-        info_plots[i].text(0.1, 0.3, "Test time: " + str(round(log[plot_types[i]]["test_time"], 3)) + "s")
+        info_plots[i].text(0.1, 0.3, "(Assuming render only)")
+        info_plots[i].text(0.1, 0.2, "Test time: " + str(round(log[plot_types[i]]["test_time"], 3)) + "s")
 
     plt.suptitle(fig_title, fontsize=16)
     plt.savefig("graphs/" + formatted_time + ".svg")
