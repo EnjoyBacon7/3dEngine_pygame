@@ -18,7 +18,8 @@ def init(args):
 
         # Camera variables
         "cameraCoords": [0, 0, 0],
-        "cameraRot": [0, 0, 3.14],
+        
+        "cameraRot": [0, 0, 0],
         "fov": 90,
         "farClip": 100,
         "nearClip": 1,
