@@ -87,4 +87,25 @@ def getColor(simVars, point):
     g = ratio * (85 - 0)
     b = ratio * (91 - 0)
     color = (r, g, b)
-    return(color)
+
+
+def getFaceNormal(simVars, points):
+
+    # Get the points of the face
+    point1 = points[0]
+    point2 = points[1]
+    point3 = points[2]
+
+    # Get two vectors defining the face
+    vector1 = (point2[0] - point1[0], point2[1] -
+               point1[1], point2[2] - point1[2])
+    vector2 = (point3[0] - point2[0], point3[1] -
+               point2[1], point3[2] - point2[2])
+
+    # Calculate the normal vector
+    normal = np.cross(vector1, vector2)
+
+    # Normalise the normal vector
+    normal = normal / np.linalg.norm(normal)
+
+    return normal
