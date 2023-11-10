@@ -51,13 +51,24 @@ def vec3tovec2(simVars, point):
     cos_z = math.cos(camera_orientation[2])
     sin_z = math.sin(camera_orientation[2])
 
-    rotation_matrix = np.array([
-        [cos_z * cos_y, cos_z * sin_y * sin_x - sin_z *
-            cos_x, cos_z * sin_y * cos_x + sin_z * sin_x],
-        [sin_z * cos_y, sin_z * sin_y * sin_x + cos_z *
-         cos_x, sin_z * sin_y * cos_x - cos_z * sin_x],
-        [-sin_y, cos_y * sin_x, cos_y * cos_x],
+    Rot_x = np.array([
+        [1, 0, 0],
+        [0, cos_x, -sin_x],
+        [0, sin_x, cos_x]
     ])
+    Rot_y = np.array([
+        [cos_y, 0, sin_y],
+        [0, 1, 0],
+        [-sin_y, 0, cos_y]
+    ])
+    Rot_z = np.array([
+        [cos_z, -sin_z, 0],
+        [sin_z, cos_z, 0],
+        [0, 0, 1]
+    ])
+
+    # Full matrix = Rot_x * Rot_y * Rot_z
+    rotation_matrix = np.matmul(np.matmul(Rot_x, Rot_y), Rot_z)
 
     # Apply change of origin and apply orientation
     point = np.matmul(rotation_matrix, (point - camera_position))
