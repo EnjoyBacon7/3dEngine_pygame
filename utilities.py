@@ -21,8 +21,8 @@ def getProjectionMatrix(simVars):
     aspect_ratio = simVars["resolution"][0] / simVars["resolution"][1]
 
     projection_matrix = np.array([
-        [1/(aspect_ratio * math.tan(fov/2)), 0, 0, 0],
-        [0, 1/(math.tan(fov/2)), 0, 0],
+        [1/(aspect_ratio * math.tan(math.radians(fov)/2)), 0, 0, 0],
+        [0, 1/(math.tan(math.radians(fov)/2)), 0, 0],
         [0, 0, (farClip + nearClip)/(farClip - nearClip),
          (-2 * farClip * nearClip)/(farClip - nearClip)],
         [0, 0, 1, 0]
