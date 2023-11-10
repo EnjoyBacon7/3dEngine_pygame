@@ -79,14 +79,17 @@ def vec3tovec2(simVars, point):
 
     return (screen_x, screen_y)
 
-def getColor(simVars, point):   
-    dst_to_origin = math.sqrt(point[0] * point[0] + point[1] * point[1] + point[2] * point[2])
+
+def getColor(simVars, point):
+    dst_to_origin = math.sqrt(
+        point[0] * point[0] + point[1] * point[1] + point[2] * point[2])
     dst_to_origin = max(min(dst_to_origin, 5), 0)
     ratio = dst_to_origin/5
     r = 255 + ratio * (42 - 255)
     g = ratio * (85 - 0)
     b = ratio * (91 - 0)
     color = (r, g, b)
+    return (color)
 
 
 def getFaceNormal(simVars, points):
