@@ -404,7 +404,9 @@ def drawOverlay(simVars, screen):
         "Frames: " + str(simVars["frame_nb"]), True, simVars["color_overlay_txt"]))
     text.append(font.render("Runtime: " + str(round(time.time() -
                 simVars["start_timestamp"], 3)), True, simVars["color_overlay_txt"]))
-                
+    # FOV
+    text.append(font.render("FOV: " + str(round(simVars["fov"], 2)),
+                True, simVars["color_overlay_txt"]))
 
     for i in range(len(text)):
         rect = text[i].get_rect(
