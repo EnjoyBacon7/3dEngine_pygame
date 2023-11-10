@@ -259,28 +259,50 @@ def drawWorld(simVars, screen):
                 pygame.draw.line(screen, colors[2], face_2D[2], face_2D[0], 1)
 
     elif (simVars["render_mode"] == "solid"):
+
         simVars["log"]["solid"]["rendered_points"] = 0
         simVars["log"]["solid"]["rendered_faces"] = 0
+
+        camera_vector = [
+            math.sin(simVars["cameraRot"][1]),
+            math.sin(simVars["cameraRot"][0]),
+            math.cos(simVars["cameraRot"][1])
+        ]
+        # 12 colors
+        colors = [
+            (255, 0, 0),
+            (255, 127, 0),
+            (255, 255, 0),
+            (127, 255, 0),
+            (0, 255, 0),
+            (0, 255, 127),
+            (0, 255, 255),
+            (0, 127, 255),
+            (0, 0, 255),
+            (127, 0, 255),
+            (255, 0, 255),
+            (255, 0, 127)
+        ]
         for object in simVars["gameObjects"]:
-            pre_baked_points = []
-            pre_baked_colors = []
-
-            for point in object["points"]:
-                pre_baked_points.append(utilities.vec3tovec2(simVars, point))
-                pre_baked_colors.append(utilities.getColor(simVars, point))
-
-            for face in object["faces"]:
-                face_2D = [
-                    pre_baked_points[face[0] - 1],
-                    pre_baked_points[face[1] - 1],
-                    pre_baked_points[face[2] - 1]
-                ]
-                color = pre_baked_colors[face[0] - 1]
-
-                # Color gradient not implemented
-                simVars["log"]["solid"]["rendered_faces"] += 1
-                pygame.draw.polygon(screen, color, face_2D)
-
+            
+            for i, face in enumerate(object["faces"]):
+                normal = utilities.getFaceNormal(simVars, [
+                    object["points"][face[0] - 1],
+                    object["points"][face[1] - 1],
+                    object["points"][face[2] - 1]
+                ])
+                if (object["points"][face[0] - 1][0] - simVars["cameraCoords"][0]) * normal[0] + (object["points"][face[0] - 1][1] - simVars["cameraCoords"][1]) * normal[1] + (object["points"][face[0] - 1][2] - simVars["cameraCoords"][2]) * normal[2] < 0:                                        
+                    
+                    face_2D = [
+                        utilities.vec3tovec2(simVars, object["points"][face[0] - 1]),
+                        utilities.vec3tovec2(simVars, object["points"][face[1] - 1]),
+                        utilities.vec3tovec2(simVars, object["points"][face[2] - 1])
+                    ]
+                    #color = utilities.getColor(simVars, object["points"][face[0] - 1])
+                    color = colors[i]
+                    # Color gradient not implemented
+                    simVars["log"]["solid"]["rendered_faces"] += 1
+                    pygame.draw.polygon(screen, color, face_2D)
 
 def drawGrid(simVars, screen):
     x_limits = [-5, 5]
