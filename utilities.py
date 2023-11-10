@@ -32,50 +32,61 @@ def getProjectionMatrix(simVars):
 
 
 def vec3tovec2(simVars, point):
-        
-    resolution = simVars["resolution"]
-    ratio = resolution[0]/resolution[1]
-    camera = simVars["cameraCoords"]
-    rotation = simVars["cameraRot"]
 
-    # rotation matrices. Apply rotation to the point (in respect to world origin):
+    # To determine a point's position on the screen:
+    # - Express the point's position in camera coordinates
+    # - Apply the rotation of the camera
+    # - Apply homogenous coordinates
+    # - Normalize the 2d vector
 
-    cos_y = math.cos(rotation[1])
-    sin_y = math.sin(rotation[1])
-    cos_z = math.cos(rotation[2])
-    sin_z = math.sin(rotation[2])
-    cos_x = math.cos(rotation[0])
-    sin_x = math.sin(rotation[0])
+    point = np.array(point)
+
+    camera_position = np.array(simVars["cameraCoords"])
+
+    camera_orientation = simVars["cameraRot"]
+    cos_x = math.cos(camera_orientation[0])
+    sin_x = math.sin(camera_orientation[0])
+    cos_y = math.cos(camera_orientation[1])
+    sin_y = math.sin(camera_orientation[1])
+    cos_z = math.cos(camera_orientation[2])
+    sin_z = math.sin(camera_orientation[2])
 
     rotation_matrix = np.array([
-            [cos_z * cos_y, cos_z * sin_y * sin_x - sin_z * cos_x, cos_z * sin_y * cos_x + sin_z * sin_x],
-            [sin_z * cos_y, sin_z * sin_y * sin_x + cos_z * cos_x, sin_z * sin_y * cos_x - cos_z * sin_x],
-            [-sin_y, cos_y * sin_x, cos_y * cos_x],
-            ])
-    point = np.array(point)
-    point = np.matmul(rotation_matrix, point)
+        [cos_z * cos_y, cos_z * sin_y * sin_x - sin_z *
+            cos_x, cos_z * sin_y * cos_x + sin_z * sin_x],
+        [sin_z * cos_y, sin_z * sin_y * sin_x + cos_z *
+         cos_x, sin_z * sin_y * cos_x - cos_z * sin_x],
+        [-sin_y, cos_y * sin_x, cos_y * cos_x],
+    ])
 
-    # For both axes :
-    # x - cameraX (input camera movement)
-    # / (z - cameraZ) Thales theorem
-    # * ratio (to keep the ratio on resize)
-    # * 300 (to scale up the points) //// 300 is arbitrary
+    # Apply change of origin and apply orientation
+    point = np.matmul(rotation_matrix, (point - camera_position))
 
-    if point[2] - camera[2] == 0:
-        relative_x = 0
-        relative_y = 0
-    elif(point[2] - camera[2] < 0):
-        screen_x = -1
-        screen_y = -1
-        return (screen_x, screen_y)
-    else:
-        relative_x = (point[0] - camera[0])/(point[2] - camera[2])
-        relative_y = (point[1] - camera[1])/(-(point[2] - camera[2]))
+    # Apply homogenous coordinates
+    point = np.array([point[0], point[1], point[2], 1])
 
-    screen_x = relative_x * ratio * simVars["scale"] + resolution[0]/2
-    screen_y = relative_y * ratio * simVars["scale"] + resolution[1]/2
+    # Apply projection matrix
+    projection_matrix = simVars["projection_matrix"]
+    point = np.matmul(projection_matrix, point)
 
-    simVars["log"][simVars["render_mode"]]["rendered_points"] += 1
+    # Remove points behind the camera
+    if point[2] < 0:
+        return (-1, -1)
+
+    # Normalize the vector
+    point = point / point[3]
+
+    # Remove points outside of NDC space
+    if point[0] < -1 or point[0] > 1 or point[1] < -1 or point[1] > 1:
+        return(-1, -1)
+
+    # Apply viewport transformation
+    point = np.array([point[0] * simVars["resolution"][0]/2, point[1] * simVars["resolution"]
+                     [1]/2, point[2] * simVars["resolution"][0]/2, point[3] * simVars["resolution"][1]/2])
+
+    # Apply offset
+    screen_x = simVars["resolution"][0]/2 - point[0]
+    screen_y = simVars["resolution"][1]/2 + point[1]
 
     return (screen_x, screen_y)
 
