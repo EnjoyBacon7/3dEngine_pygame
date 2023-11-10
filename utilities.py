@@ -96,8 +96,8 @@ def vec3tovec2(simVars, point):
                      [1]/2, point[2] * simVars["resolution"][0]/2, point[3] * simVars["resolution"][1]/2])
 
     # Apply offset
-    screen_x = simVars["resolution"][0]/2 - point[0]
-    screen_y = simVars["resolution"][1]/2 + point[1]
+    screen_x = simVars["resolution"][0]/2 + point[0]
+    screen_y = simVars["resolution"][1]/2 - point[1]
 
     return (screen_x, screen_y)
 
