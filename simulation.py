@@ -117,9 +117,9 @@ def handleEvents(simVars):
                 simVars["show_overlay"] = not simVars["show_overlay"]
             if event.key == pygame.K_p:
                 simVars["render_mode"] = "points"
-            if event.key == pygame.K_w:
+            if event.key == pygame.K_o:
                 simVars["render_mode"] = "wireframe"
-            if event.key == pygame.K_s:
+            if event.key == pygame.K_i:
                 simVars["render_mode"] = "solid"
             if event.key == pygame.K_EQUALS:
                 if pygame.mouse.get_visible():
@@ -227,7 +227,7 @@ def handleDisplay(simVars, screen):
     screen.fill(config.COLOR_BG)
 
     # Draw the grid
-    drawGrid(simVars, screen)
+    #drawGrid(simVars, screen)
 
     # Draw the points
     drawWorld(simVars, screen)
@@ -345,7 +345,7 @@ def drawWorld(simVars, screen):
                         utilities.vec3tovec2(simVars, object["points"][face[2] - 1])
                     ]
                     #color = utilities.getColor(simVars, object["points"][face[0] - 1])
-                    color = colors[i]
+                    color = colors[i%12]
                     # Color gradient not implemented
                     simVars["log"]["solid"]["rendered_faces"] += 1
                     pygame.draw.polygon(screen, color, face_2D)
