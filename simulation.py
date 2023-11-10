@@ -129,15 +129,57 @@ def handleEvents(simVars):
                     pygame.mouse.set_visible(True)
                     pygame.event.set_grab(False)
 
+    # Calculate direction vector
+    dirX = np.sin(simVars["cameraRot"][1])
+    dirY = -np.sin(simVars["cameraRot"][0])
+    dirZ = -np.cos(simVars["cameraRot"][1])
+
+    # Normalize direction vector
+    length = np.sqrt(dirX**2 + dirY**2 + dirZ**2)
+    dirX /= length
+    dirY /= length
+    dirZ /= length
+
+    # Calculate up vector
+    upX, upY, upZ = 0, 1, 0
+
+    # Calculate strafe vector using cross product
+    strafeX = dirY*upZ - dirZ*upY
+    strafeY = dirZ*upX - dirX*upZ
+    strafeZ = dirX*upY - dirY*upX
+
+    # Normalize strafe vector
+    length = np.sqrt(strafeX**2 + strafeY**2 + strafeZ**2)
+    strafeX /= length
+    strafeY /= length
+    strafeZ /= length
+
+
     keys = pygame.key.get_pressed()
     if keys[pygame.K_s]:
-        simVars["cameraCoords"][2] -= 0.05*delta_time
+        simVars["cameraCoords"][0] += dirX * 0.05*delta_time
+        simVars["cameraCoords"][1] += dirY * 0.05*delta_time
+        simVars["cameraCoords"][2] += dirZ * 0.05*delta_time
     if keys[pygame.K_z]:
-        simVars["cameraCoords"][2] += 0.05*delta_time
+        simVars["cameraCoords"][0] -= dirX * 0.05*delta_time
+        simVars["cameraCoords"][1] -= dirY * 0.05*delta_time
+        simVars["cameraCoords"][2] -= dirZ * 0.05*delta_time
     if keys[pygame.K_q]:
-        simVars["cameraCoords"][0] -= 0.05*delta_time
+        simVars["cameraCoords"][0] -= strafeX * 0.05*delta_time
+        simVars["cameraCoords"][1] -= strafeY * 0.05*delta_time
+        simVars["cameraCoords"][2] -= strafeZ * 0.05*delta_time
     if keys[pygame.K_d]:
-        simVars["cameraCoords"][0] += 0.05*delta_time
+        simVars["cameraCoords"][0] += strafeX * 0.05*delta_time
+        simVars["cameraCoords"][1] += strafeY * 0.05*delta_time
+        simVars["cameraCoords"][2] += strafeZ * 0.05*delta_time
+    if keys[pygame.K_m]:
+        # Lower fov
+        simVars["fov"] -= 1 * delta_time
+        simVars["projection_matrix"] = utilities.getProjectionMatrix(simVars)
+    if keys[pygame.K_l]:
+        # Increase fov
+        simVars["fov"] += 1 * delta_time
+        simVars["projection_matrix"] = utilities.getProjectionMatrix(simVars)
     if keys[pygame.K_e]:
         simVars["cameraCoords"][1] += 0.05*delta_time
     if keys[pygame.K_a]:
@@ -163,8 +205,9 @@ def handleEvents(simVars):
             simVars["cameraRot"][2] += 0.0005
 
     mouse_move = pygame.mouse.get_rel()
-    simVars["cameraRot"][0] += mouse_move[1]/100
-    simVars["cameraRot"][1] += mouse_move[0]/100
+
+    simVars["cameraRot"][0] -= mouse_move[1]/100
+    simVars["cameraRot"][1] -= mouse_move[0]/100
 
 # ----------------------------------------
 # Drawing functions
