@@ -13,7 +13,7 @@ def main():
     simVars = simulation.init(runtime_arguments)
 
     # Define some initial Points
-    cube = loadGameObjectObj("my_cube.obj")
+    cube = loadGameObjectObj("cube.obj")
 
     simVars["gameObjects"].append(cube)
 
