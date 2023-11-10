@@ -152,6 +152,12 @@ def handleEvents(simVars):
                     object["points"][j][1] -= 0.05
                 if keys[pygame.K_UP]:
                     object["points"][j][1] += 0.05
+    if keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]:
+        # Rotate camera on z axis
+        if keys[pygame.K_LEFT]:
+            simVars["cameraRot"][2] -= 0.0005
+        if keys[pygame.K_RIGHT]:
+            simVars["cameraRot"][2] += 0.0005
 
     mouse_move = pygame.mouse.get_rel()
     simVars["cameraRot"][0] += mouse_move[1]/100
