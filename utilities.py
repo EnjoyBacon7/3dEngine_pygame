@@ -3,10 +3,28 @@ import config
 import numpy as np
 import math
 
+
 def updateVarsOnResize(simVars):
     simVars["resolution"] = pygame.display.get_surface().get_size()
     simVars["overlay_size"] = (config.OVERLAY_SIZE[0]/100 * simVars["resolution"][0], config.OVERLAY_SIZE[1]/100 * simVars["resolution"][1])
     simVars["overlay_pos"] = (config.OVERLAY_POS[0]/100 * simVars["resolution"][0], config.OVERLAY_POS[1]/100 * simVars["resolution"][1])
+def getProjectionMatrix(simVars):
+    # Create projection matrix
+    nearClip = simVars["nearClip"]
+    farClip = simVars["farClip"]
+    fov = simVars["fov"]
+    aspect_ratio = simVars["resolution"][0] / simVars["resolution"][1]
+
+    projection_matrix = np.array([
+        [1/(aspect_ratio * math.tan(fov/2)), 0, 0, 0],
+        [0, 1/(math.tan(fov/2)), 0, 0],
+        [0, 0, (farClip + nearClip)/(farClip - nearClip),
+         (-2 * farClip * nearClip)/(farClip - nearClip)],
+        [0, 0, 1, 0]
+    ])
+
+    return projection_matrix
+
 
 def vec3tovec2(simVars, point):
         
