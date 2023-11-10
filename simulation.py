@@ -15,12 +15,13 @@ def init(args):
         "gameObjects": [],
 
         # Camera variables
-        "cameraCoords": [0, 0, -5],
-        "cameraRot": [0, 0, 0],
+        "cameraCoords": [0, 0, 0],
+        "cameraRot": [0, 0, 3.14],
         "fov": 90,
         "farClip": 100,
         "nearClip": 1,
         "scale": config.SCALE,
+        "projection_matrix": [],
 
         # Loading variables from config.py
         "resolution": args.resolution,
@@ -35,7 +36,7 @@ def init(args):
         # Rendering variables
         # "wireframe", "solid", or "points"
         "render_mode": "points" if args.log == True else args.render_mode,
-        
+
         "running": True,
         "fps_timestamp": 0,
 
@@ -66,6 +67,9 @@ def init(args):
             },
         }
     }
+
+    simVars["projection_matrix"] = utilities.getProjectionMatrix(simVars)
+
     return simVars
 
 # ----------------------------------------
