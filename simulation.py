@@ -3,6 +3,8 @@ import config
 import utilities
 import time
 import graph
+import math
+import numpy as np
 
 # ----------------------------------------
 # Initialise the simulation
@@ -353,9 +355,12 @@ def drawOverlay(simVars, screen):
     text.append(font.render(
         "Camera: " + str([round(num, 2) for num in simVars["cameraCoords"]]), True, simVars["color_overlay_txt"]))
     text.append(font.render(
+        "Camera rotation: " + str([round(np.degrees(num), 2) for num in simVars["cameraRot"]]), True, simVars["color_overlay_txt"]))
+    text.append(font.render(
         "Frames: " + str(simVars["frame_nb"]), True, simVars["color_overlay_txt"]))
     text.append(font.render("Runtime: " + str(round(time.time() -
                 simVars["start_timestamp"], 3)), True, simVars["color_overlay_txt"]))
+                
 
     for i in range(len(text)):
         rect = text[i].get_rect(
