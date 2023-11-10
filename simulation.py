@@ -112,6 +112,19 @@ def handleEvents(simVars):
                 simVars["running"] = False
             if event.key == pygame.K_SPACE:
                 simVars["show_overlay"] = not simVars["show_overlay"]
+            if event.key == pygame.K_p:
+                simVars["render_mode"] = "points"
+            if event.key == pygame.K_w:
+                simVars["render_mode"] = "wireframe"
+            if event.key == pygame.K_s:
+                simVars["render_mode"] = "solid"
+            if event.key == pygame.K_EQUALS:
+                if pygame.mouse.get_visible():
+                    pygame.mouse.set_visible(False)
+                    pygame.event.set_grab(True)
+                else:
+                    pygame.mouse.set_visible(True)
+                    pygame.event.set_grab(False)
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_s]:
