@@ -13,8 +13,12 @@ def handleInputs(simVars):
     timestamp = time.time()
     delta_time = timestamp - simVars["input_timestamp"]
 
-    handleEvents(simVars, delta_time)
-    movementHandler(simVars, delta_time)
+    step = 1 * delta_time
+
+    handleEvents(simVars, step)
+    debugHandler(simVars, step)
+    movementHandler(simVars, step)
+    rotationHandler(simVars, step)
 
     # Log the input handler time for this frame
     if simVars["enable_logging"]:
@@ -23,7 +27,7 @@ def handleInputs(simVars):
     # Update the input timestamp (storing this frame's timestamp)
     simVars["input_timestamp"] = timestamp
 
-def handleEvents(simVars, delta_time):
+def handleEvents(simVars, step):
 
     for event in pygame.event.get():
         # A quit event does not warrant a plot. It is a request for immediate termination
@@ -50,45 +54,7 @@ def handleEvents(simVars, delta_time):
                     pygame.mouse.set_visible(True)
                     pygame.event.set_grab(False)
 
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_m]:
-        # Lower fov
-        simVars["fov"] -= 1 * delta_time
-        simVars["projection_matrix"] = utilities.getProjectionMatrix(simVars)
-    if keys[pygame.K_l]:
-        # Increase fov
-        simVars["fov"] += 1 * delta_time
-        simVars["projection_matrix"] = utilities.getProjectionMatrix(simVars)
-    if keys[pygame.K_e]:
-        simVars["cameraCoords"][1] += 1*delta_time
-    if keys[pygame.K_a]:
-        simVars["cameraCoords"][1] -= 1*delta_time
-    if keys[pygame.K_b]:
-        simVars["scale"] += 1
-    if keys[pygame.K_n]:
-        simVars["scale"] -= 1
-    # test buttons
-    if keys[pygame.K_DOWN] or keys[pygame.K_UP]:
-        for i in range(len(simVars["gameObjects"])):
-            object = simVars["gameObjects"][i]
-            for j in range(len(object["points"])):
-                if keys[pygame.K_DOWN]:
-                    object["points"][j][1] -= 0.05
-                if keys[pygame.K_UP]:
-                    object["points"][j][1] += 0.05
-    if keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]:
-        # Rotate camera on z axis
-        if keys[pygame.K_LEFT]:
-            simVars["cameraRot"][2] -= 0.0005
-        if keys[pygame.K_RIGHT]:
-            simVars["cameraRot"][2] += 0.0005
-
-    mouse_move = pygame.mouse.get_rel()
-
-    simVars["cameraRot"][0] -= mouse_move[1]/100
-    simVars["cameraRot"][1] -= mouse_move[0]/100
-
-def movementHandler(simVars, delta_time):
+def movementHandler(simVars, step):
 
     keys = pygame.key.get_pressed()
 
@@ -109,11 +75,52 @@ def movementHandler(simVars, delta_time):
     length = np.sqrt(strafe_vec3[0]**2 + strafe_vec3[1]**2 + strafe_vec3[2]**2)
     strafe_vec3 /= length
 
+    
+
     if keys[pygame.K_s]:
-        simVars["cameraCoords"] += dir_vec3 * 1*delta_time
+        simVars["cameraCoords"] += dir_vec3 * step
     if keys[pygame.K_z]:
-        simVars["cameraCoords"] -= dir_vec3 * 1*delta_time
+        simVars["cameraCoords"] -= dir_vec3 * step
     if keys[pygame.K_q]:
-        simVars["cameraCoords"] -= strafe_vec3 * 1*delta_time
+        simVars["cameraCoords"] -= strafe_vec3 * step
     if keys[pygame.K_d]:
-        simVars["cameraCoords"] += strafe_vec3 * 1*delta_time
+        simVars["cameraCoords"] += strafe_vec3 * step
+    if keys[pygame.K_e]:
+        simVars["cameraCoords"][1] += step
+    if keys[pygame.K_a]:
+        simVars["cameraCoords"][1] -= step
+
+def rotationHandler(simVars, step):
+
+    mouse_move = pygame.mouse.get_rel()
+
+    simVars["cameraRot"][0] -= mouse_move[1]/100
+    simVars["cameraRot"][1] -= mouse_move[0]/100
+
+def debugHandler(simVars, step):
+    keys = pygame.key.get_pressed()
+
+    # Increase and decrease fov
+    if keys[pygame.K_m]:
+        simVars["fov"] -= step
+        simVars["projection_matrix"] = utilities.getProjectionMatrix(simVars)
+    if keys[pygame.K_l]:
+        simVars["fov"] += step
+        simVars["projection_matrix"] = utilities.getProjectionMatrix(simVars)
+    
+    # Incresae and decrease Y value of all points' poisitions
+    if keys[pygame.K_DOWN] or keys[pygame.K_UP]:
+        for i in range(len(simVars["gameObjects"])):
+            object = simVars["gameObjects"][i]
+            for j in range(len(object["points"])):
+                if keys[pygame.K_DOWN]:
+                    object["points"][j][1] -= step
+                if keys[pygame.K_UP]:
+                    object["points"][j][1] += step
+
+    if keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]:
+        # Rotate camera on z axis
+        if keys[pygame.K_LEFT]:
+            simVars["cameraRot"][2] -= step
+        if keys[pygame.K_RIGHT]:
+            simVars["cameraRot"][2] += step
