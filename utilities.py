@@ -99,6 +99,9 @@ def vec3tovec2(simVars, point):
     screen_x = simVars["resolution"][0]/2 + point[0]
     screen_y = simVars["resolution"][1]/2 - point[1]
 
+    # Add 1 to rendered points
+    simVars["log"][simVars["render_mode"]]["rendered_points"] += 1
+
     return (screen_x, screen_y)
 
 
