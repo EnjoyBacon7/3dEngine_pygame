@@ -30,11 +30,12 @@ def handleInputs(simVars):
 def handleEvents(simVars, step):
 
     for event in pygame.event.get():
-        # A quit event does not warrant a plot. It is a request for immediate termination
-        if event.type == pygame.QUIT:
-            pygame.quit()
+        if event.type == pygame.QUIT: 
+            pygame.quit() # A quit event does not warrant a plot. It is a request for immediate termination
         if event.type == pygame.VIDEORESIZE:
             utilities.updateVarsOnResize(simVars)
+
+        # Here we handle key presses (not key holds)
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 simVars["running"] = False
@@ -58,6 +59,10 @@ def movementHandler(simVars, step):
 
     keys = pygame.key.get_pressed()
 
+    # Save calculations by calculating only if needed
+    if not (keys[pygame.K_s] or keys[pygame.K_z] or keys[pygame.K_q] or keys[pygame.K_d] or keys[pygame.K_e] or keys[pygame.K_a]):
+        return
+
     # Calculate camera direction vector
     dir_vec3 = np.array([np.sin(simVars["cameraRot"][1]), -np.sin(simVars["cameraRot"][0]), -np.cos(simVars["cameraRot"][1])])
 
@@ -76,7 +81,7 @@ def movementHandler(simVars, step):
     strafe_vec3 /= length
 
     
-
+    # Apply movement
     if keys[pygame.K_s]:
         simVars["cameraCoords"] += dir_vec3 * step
     if keys[pygame.K_z]:
