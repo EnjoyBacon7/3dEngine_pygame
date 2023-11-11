@@ -26,7 +26,8 @@ def plot_log(log):
     graph_plot.legend()
     graph_plot.title.set_text("Frame time")
 
-    info_plots = [fig.add_subplot(234), fig.add_subplot(235), fig.add_subplot(236)]
+    info_plots = [fig.add_subplot(245), fig.add_subplot(246), fig.add_subplot(247)]
+    general_plot = fig.add_subplot(248)
     plot_types = ["points", "wireframe", "solid"]
 
     for i in range(len(info_plots)):
@@ -51,6 +52,14 @@ def plot_log(log):
         info_plots[i].text(0.1, 0.4, "Avg FPS: " + str(avg_fps))
         info_plots[i].text(0.1, 0.3, "(Assuming render only)")
         info_plots[i].text(0.1, 0.2, "Test time: " + str(round(log[plot_types[i]]["test_time"], 3)) + "s")
+
+    general_plot.tick_params(axis='both', which='both', length=0, labelbottom=False, labelleft=False)
+    general_plot_pos = general_plot.get_position().bounds
+    new_pos = [general_plot_pos[0], general_plot_pos[1], general_plot_pos[2], general_plot_pos[3] - 0.05]
+    general_plot.set_position(new_pos)
+    general_plot.text(0.5, 0.9, "General info", ha='center', va='center', size=11)
+    input_time_avg = round((sum(log["input_handler_time"]) / len(log["input_handler_time"]) * 1000), 2)
+    general_plot.text(0.1, 0.7, "Input time: " + str(input_time_avg) + "ms")
 
     plt.suptitle(fig_title, fontsize=16)
     plt.savefig("graphs/" + formatted_time + ".svg")
