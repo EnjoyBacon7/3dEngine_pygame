@@ -8,7 +8,6 @@ LOG_MAX_TIME = 60 # s
 
 OVERLAY_SIZE = (90, 20) # %
 OVERLAY_POS = (5, 75) # %
-SCALE = 300
 
 FPS = 120
 

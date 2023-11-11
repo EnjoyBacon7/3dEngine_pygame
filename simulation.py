@@ -25,7 +25,6 @@ def init(args):
         "fov": 90,
         "farClip": 100,
         "nearClip": 1,
-        "scale": config.SCALE,
         "projection_matrix": [],
 
         # Loading variables from config.py
