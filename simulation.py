@@ -17,7 +17,7 @@ def init(args):
         "gameObjects": [],
 
         # Camera variables
-        "cameraCoords": [0, 0, 0],
+        "cameraCoords": [0, 0, -5],
         
         "cameraRot": [0, 0, 0],
         "fov": 90,
