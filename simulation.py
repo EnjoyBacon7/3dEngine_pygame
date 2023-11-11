@@ -41,7 +41,8 @@ def init(args):
         "render_mode": "points" if args.log == True else args.render_mode,
 
         "running": True,
-        "fps_timestamp": 0,
+        "display_timestamp": 0,
+        "input_timestamp": 0,
 
         # Logging variables
         "start_timestamp": time.time(),
@@ -102,7 +103,7 @@ def loop(simVars, screen):
 def handleEvents(simVars):
 
     timestamp = time.time()
-    delta_time = timestamp - simVars["fps_timestamp"]
+    delta_time = timestamp - simVars["input_timestamp"]
 
     for event in pygame.event.get():
         # A quit event does not warrant a plot. It is a request for immediate termination
@@ -209,6 +210,9 @@ def handleEvents(simVars):
     simVars["cameraRot"][0] -= mouse_move[1]/100
     simVars["cameraRot"][1] -= mouse_move[0]/100
 
+    # Update the input timestamp (storing this frame's timestamp)
+    simVars["input_timestamp"] = timestamp
+
 # ----------------------------------------
 # Drawing functions
 # ----------------------------------------
@@ -218,7 +222,7 @@ def handleDisplay(simVars, screen):
 
     # Get the current time and calculate the time since the last frame
     timestamp = time.time()
-    delta_time = timestamp - simVars["fps_timestamp"]
+    delta_time = timestamp - simVars["display_timestamp"]
     # If the time since the last frame is less than the target frame time, don't render
     if (delta_time < 1/config.FPS):
         return
@@ -262,7 +266,7 @@ def handleDisplay(simVars, screen):
                     simVars["running"] = False
 
     # Update the fps timestamp (storing this frame's timestamp)
-    simVars["fps_timestamp"] = timestamp
+    simVars["display_timestamp"] = timestamp
 
 
 def drawWorld(simVars, screen):
@@ -388,7 +392,7 @@ def drawOverlay(simVars, screen):
     # Overlay content
     text = []
 
-    frame_time = time.time() - simVars["fps_timestamp"]
+    frame_time = time.time() - simVars["display_timestamp"]
 
     text.append(font.render("n° of points: " +
                 str(simVars["log"][simVars["render_mode"]]["rendered_points"]), True, simVars["color_overlay_txt"]))
