@@ -158,21 +158,21 @@ def handleEvents(simVars):
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_s]:
-        simVars["cameraCoords"][0] += dirX * 0.05*delta_time
-        simVars["cameraCoords"][1] += dirY * 0.05*delta_time
-        simVars["cameraCoords"][2] += dirZ * 0.05*delta_time
+        simVars["cameraCoords"][0] += dirX * 1*delta_time
+        simVars["cameraCoords"][1] += dirY * 1*delta_time
+        simVars["cameraCoords"][2] += dirZ * 1*delta_time
     if keys[pygame.K_z]:
-        simVars["cameraCoords"][0] -= dirX * 0.05*delta_time
-        simVars["cameraCoords"][1] -= dirY * 0.05*delta_time
-        simVars["cameraCoords"][2] -= dirZ * 0.05*delta_time
+        simVars["cameraCoords"][0] -= dirX * 1*delta_time
+        simVars["cameraCoords"][1] -= dirY * 1*delta_time
+        simVars["cameraCoords"][2] -= dirZ * 1*delta_time
     if keys[pygame.K_q]:
-        simVars["cameraCoords"][0] -= strafeX * 0.05*delta_time
-        simVars["cameraCoords"][1] -= strafeY * 0.05*delta_time
-        simVars["cameraCoords"][2] -= strafeZ * 0.05*delta_time
+        simVars["cameraCoords"][0] -= strafeX * 1*delta_time
+        simVars["cameraCoords"][1] -= strafeY * 1*delta_time
+        simVars["cameraCoords"][2] -= strafeZ * 1*delta_time
     if keys[pygame.K_d]:
-        simVars["cameraCoords"][0] += strafeX * 0.05*delta_time
-        simVars["cameraCoords"][1] += strafeY * 0.05*delta_time
-        simVars["cameraCoords"][2] += strafeZ * 0.05*delta_time
+        simVars["cameraCoords"][0] += strafeX * 1*delta_time
+        simVars["cameraCoords"][1] += strafeY * 1*delta_time
+        simVars["cameraCoords"][2] += strafeZ * 1*delta_time
     if keys[pygame.K_m]:
         # Lower fov
         simVars["fov"] -= 1 * delta_time
@@ -182,9 +182,9 @@ def handleEvents(simVars):
         simVars["fov"] += 1 * delta_time
         simVars["projection_matrix"] = utilities.getProjectionMatrix(simVars)
     if keys[pygame.K_e]:
-        simVars["cameraCoords"][1] += 0.05*delta_time
+        simVars["cameraCoords"][1] += 1*delta_time
     if keys[pygame.K_a]:
-        simVars["cameraCoords"][1] -= 0.05*delta_time
+        simVars["cameraCoords"][1] -= 1*delta_time
     if keys[pygame.K_b]:
         simVars["scale"] += 1
     if keys[pygame.K_n]:
