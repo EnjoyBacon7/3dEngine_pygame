@@ -4,16 +4,26 @@ import numpy as np
 
 import utilities
 
-
 # ----------------------------------------
 # Event and input handling
 # ----------------------------------------
 
-
-def handleEvents(simVars):
+def handleInputs(simVars):
 
     timestamp = time.time()
     delta_time = timestamp - simVars["input_timestamp"]
+
+    handleEvents(simVars, delta_time)
+    movementHandler(simVars, delta_time)
+
+    # Log the input handler time for this frame
+    if simVars["enable_logging"]:
+        simVars["log"]["input_handler_time"].append(time.time() - timestamp)
+
+    # Update the input timestamp (storing this frame's timestamp)
+    simVars["input_timestamp"] = timestamp
+
+def handleEvents(simVars, delta_time):
 
     for event in pygame.event.get():
         # A quit event does not warrant a plot. It is a request for immediate termination
@@ -40,49 +50,7 @@ def handleEvents(simVars):
                     pygame.mouse.set_visible(True)
                     pygame.event.set_grab(False)
 
-    # Calculate direction vector
-    dirX = np.sin(simVars["cameraRot"][1])
-    dirY = -np.sin(simVars["cameraRot"][0])
-    dirZ = -np.cos(simVars["cameraRot"][1])
-
-    # Normalize direction vector
-    length = np.sqrt(dirX**2 + dirY**2 + dirZ**2)
-    dirX /= length
-    dirY /= length
-    dirZ /= length
-
-    # Calculate up vector
-    upX, upY, upZ = 0, 1, 0
-
-    # Calculate strafe vector using cross product
-    strafeX = dirY*upZ - dirZ*upY
-    strafeY = dirZ*upX - dirX*upZ
-    strafeZ = dirX*upY - dirY*upX
-
-    # Normalize strafe vector
-    length = np.sqrt(strafeX**2 + strafeY**2 + strafeZ**2)
-    strafeX /= length
-    strafeY /= length
-    strafeZ /= length
-
-
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_s]:
-        simVars["cameraCoords"][0] += dirX * 1*delta_time
-        simVars["cameraCoords"][1] += dirY * 1*delta_time
-        simVars["cameraCoords"][2] += dirZ * 1*delta_time
-    if keys[pygame.K_z]:
-        simVars["cameraCoords"][0] -= dirX * 1*delta_time
-        simVars["cameraCoords"][1] -= dirY * 1*delta_time
-        simVars["cameraCoords"][2] -= dirZ * 1*delta_time
-    if keys[pygame.K_q]:
-        simVars["cameraCoords"][0] -= strafeX * 1*delta_time
-        simVars["cameraCoords"][1] -= strafeY * 1*delta_time
-        simVars["cameraCoords"][2] -= strafeZ * 1*delta_time
-    if keys[pygame.K_d]:
-        simVars["cameraCoords"][0] += strafeX * 1*delta_time
-        simVars["cameraCoords"][1] += strafeY * 1*delta_time
-        simVars["cameraCoords"][2] += strafeZ * 1*delta_time
     if keys[pygame.K_m]:
         # Lower fov
         simVars["fov"] -= 1 * delta_time
@@ -120,9 +88,32 @@ def handleEvents(simVars):
     simVars["cameraRot"][0] -= mouse_move[1]/100
     simVars["cameraRot"][1] -= mouse_move[0]/100
 
-    # Log the input handler time for this frame
-    if simVars["enable_logging"]:
-        simVars["log"]["input_handler_time"].append(time.time() - timestamp)
+def movementHandler(simVars, delta_time):
 
-    # Update the input timestamp (storing this frame's timestamp)
-    simVars["input_timestamp"] = timestamp
+    keys = pygame.key.get_pressed()
+
+    # Calculate camera direction vector
+    dir_vec3 = np.array([np.sin(simVars["cameraRot"][1]), -np.sin(simVars["cameraRot"][0]), -np.cos(simVars["cameraRot"][1])])
+
+    # Normalize direction vector
+    length = np.sqrt(dir_vec3[0]**2 + dir_vec3[1]**2 + dir_vec3[2]**2)
+    dir_vec3 /= length
+
+    # Calculate up vector
+    up_vec3 = np.array([0, 1, 0])
+
+    # Calculate strafe vector using cross product
+    strafe_vec3 = np.cross(dir_vec3, up_vec3)
+
+    # Normalize strafe vector
+    length = np.sqrt(strafe_vec3[0]**2 + strafe_vec3[1]**2 + strafe_vec3[2]**2)
+    strafe_vec3 /= length
+
+    if keys[pygame.K_s]:
+        simVars["cameraCoords"] += dir_vec3 * 1*delta_time
+    if keys[pygame.K_z]:
+        simVars["cameraCoords"] -= dir_vec3 * 1*delta_time
+    if keys[pygame.K_q]:
+        simVars["cameraCoords"] -= strafe_vec3 * 1*delta_time
+    if keys[pygame.K_d]:
+        simVars["cameraCoords"] += strafe_vec3 * 1*delta_time

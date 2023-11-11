@@ -89,7 +89,7 @@ def loop(simVars, screen):
     while simVars["running"]:
 
         # Handle input and events
-        inputHandling.handleEvents(simVars)
+        inputHandling.handleInputs(simVars)
         # Display on screen
         handleDisplay(simVars, screen)
 
