@@ -31,7 +31,7 @@ def getProjectionMatrix(simVars):
     return projection_matrix
 
 
-def vec3tovec2(simVars, point):
+def vec3tovec2(simVars, point, camera_rotation_matrix):
 
     # To determine a point's position on the screen:
     # - Express the point's position in camera coordinates
@@ -137,3 +137,32 @@ def getFaceNormal(simVars, points):
     normal = normal / np.linalg.norm(normal)
 
     return normal
+
+def getCameraRotationMatrix(camera_orientation):
+    cos_x = math.cos(camera_orientation[0])
+    sin_x = math.sin(camera_orientation[0])
+    cos_y = math.cos(camera_orientation[1])
+    sin_y = math.sin(camera_orientation[1])
+    cos_z = math.cos(camera_orientation[2])
+    sin_z = math.sin(camera_orientation[2])
+
+    Rot_x = np.array([
+        [1, 0, 0],
+        [0, cos_x, -sin_x],
+        [0, sin_x, cos_x]
+    ])
+    Rot_y = np.array([
+        [cos_y, 0, sin_y],
+        [0, 1, 0],
+        [-sin_y, 0, cos_y]
+    ])
+    Rot_z = np.array([
+        [cos_z, -sin_z, 0],
+        [sin_z, cos_z, 0],
+        [0, 0, 1]
+    ])
+
+    # Full matrix = Rot_x * Rot_y * Rot_z
+    rotation_matrix = np.matmul(np.matmul(Rot_x, Rot_y), Rot_z)
+
+    return(rotation_matrix)

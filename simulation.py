@@ -271,13 +271,16 @@ def handleDisplay(simVars, screen):
 
 def drawWorld(simVars, screen):
 
+    # Math out this frame's camera rotation matrix
+    camera_rotation_matrix = utilities.getCameraRotationMatrix(simVars["cameraRot"])
+
     # Math out the 3d points on the canvas (1 unit away from the camera)
     if (simVars["render_mode"] == "points"):
         simVars["log"]["points"]["rendered_points"] = 0
         simVars["log"]["points"]["rendered_faces"] = 0
         for object in simVars["gameObjects"]:
             for point in object["points"]:
-                point_2D = utilities.vec3tovec2(simVars, point)
+                point_2D = utilities.vec3tovec2(simVars, point, camera_rotation_matrix)
                 color = utilities.getColor(simVars, point)
 
                 if point_2D == (-1, -1):
@@ -293,7 +296,7 @@ def drawWorld(simVars, screen):
             pre_baked_points = []
             pre_baked_colors = []
             for point in object["points"]:
-                pre_baked_points.append(utilities.vec3tovec2(simVars, point))
+                pre_baked_points.append(utilities.vec3tovec2(simVars, point, camera_rotation_matrix))
                 pre_baked_colors.append(utilities.getColor(simVars, point))
 
             for face in object["faces"]:
@@ -351,9 +354,9 @@ def drawWorld(simVars, screen):
                 if (object["points"][face[0] - 1][0] - simVars["cameraCoords"][0]) * normal[0] + (object["points"][face[0] - 1][1] - simVars["cameraCoords"][1]) * normal[1] + (object["points"][face[0] - 1][2] - simVars["cameraCoords"][2]) * normal[2] < 0:                                        
                     
                     face_2D = [
-                        utilities.vec3tovec2(simVars, object["points"][face[0] - 1]),
-                        utilities.vec3tovec2(simVars, object["points"][face[1] - 1]),
-                        utilities.vec3tovec2(simVars, object["points"][face[2] - 1])
+                        utilities.vec3tovec2(simVars, object["points"][face[0] - 1], camera_rotation_matrix),
+                        utilities.vec3tovec2(simVars, object["points"][face[1] - 1], camera_rotation_matrix),
+                        utilities.vec3tovec2(simVars, object["points"][face[2] - 1], camera_rotation_matrix)
                     ]
 
                     if face_2D[0] == (-1, -1) or face_2D[1] == (-1, -1) or face_2D[2] == (-1, -1):
