@@ -154,14 +154,14 @@ def drawWorld(simVars, screen):
                 if face_2D[0] == (-1, -1) or face_2D[1] == (-1, -1) or face_2D[2] == (-1, -1):
                     continue
 
-                # # If the winding order is CCW, don't render the face
-                # abX = face_2D[1][0] - face_2D[0][0]
-                # abY = face_2D[1][1] - face_2D[0][1]
-                # acX = face_2D[2][0] - face_2D[0][0]
-                # acY = face_2D[2][1] - face_2D[0][1]
+                # If the winding order is CCW, don't render the face
+                abX = face_2D[1][0] - face_2D[0][0]
+                abY = face_2D[1][1] - face_2D[0][1]
+                acX = face_2D[2][0] - face_2D[0][0]
+                acY = face_2D[2][1] - face_2D[0][1]
 
-                # if (abX * acY - abY * acX) < 0:
-                #     continue
+                if (abX * acY - abY * acX) < 0:
+                    continue
 
                 # Color gradient not implemented
                 simVars["log"]["solid"]["rendered_faces"] += 1
