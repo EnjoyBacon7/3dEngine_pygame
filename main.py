@@ -3,6 +3,9 @@ import simulation_py.config as config
 import simulation_py.simulation as simulation
 import args
 
+import cProfile
+import pstats
+
 def main():
 
     # Retrieve arguments from the command line
