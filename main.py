@@ -1,6 +1,6 @@
 import pygame
-import config
-import simulation
+import simulation_py.config as config
+import simulation_py.simulation as simulation
 import args
 
 def main():

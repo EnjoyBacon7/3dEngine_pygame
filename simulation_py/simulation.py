@@ -4,9 +4,9 @@ import graph
 import math
 import numpy as np
 
-import config
-import utilities
-import inputHandling
+import simulation_py.config as config
+import simulation_py.utilities as utilities
+import simulation_py.inputHandling as inputHandling
 
 # ----------------------------------------
 # Initialise the simulation
@@ -24,7 +24,7 @@ def init(args):
         "cameraRot": [0, 0, 0],
         "fov": 90,
         "farClip": 100,
-        "nearClip": 1,
+        "nearClip": 0.1,
         "projection_matrix": [],
 
         # Loading variables from config.py

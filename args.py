@@ -1,5 +1,5 @@
 import argparse
-import config
+import simulation_py.config as config
 
 def init():
     parser = argparse.ArgumentParser(description='3D engine in python')

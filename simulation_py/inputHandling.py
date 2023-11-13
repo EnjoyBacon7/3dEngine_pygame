@@ -2,7 +2,7 @@ import time
 import pygame
 import numpy as np
 
-import utilities
+import simulation_py.utilities as utilities
 
 # ----------------------------------------
 # Event and input handling
