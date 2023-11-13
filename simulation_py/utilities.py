@@ -30,7 +30,6 @@ def getProjectionMatrix(simVars):
 
     return projection_matrix
 
-
 def vec3tovec2(simVars, point, camera_rotation_matrix):
 
     # To determine a point's position on the screen:
@@ -39,9 +38,7 @@ def vec3tovec2(simVars, point, camera_rotation_matrix):
     # - Apply homogenous coordinates
     # - Normalize the 2d vector
 
-    point = np.array(point)
-
-    camera_position = np.array(simVars["cameraCoords"])
+    camera_position = simVars["cameraCoords"]
 
     # Apply change of origin and apply orientation
     point = np.matmul(camera_rotation_matrix, (point - camera_position))
@@ -58,15 +55,15 @@ def vec3tovec2(simVars, point, camera_rotation_matrix):
         return (-1, -1)
 
     # Normalize the vector
-    point = point / point[3]
+    point /= point[3]
 
     # Remove points outside of NDC space
     if point[0] < -1 or point[0] > 1 or point[1] < -1 or point[1] > 1:
         return(-1, -1)
 
     # Apply viewport transformation
-    point = np.array([point[0] * simVars["resolution"][0]/2, point[1] * simVars["resolution"]
-                     [1]/2, point[2] * simVars["resolution"][0]/2, point[3] * simVars["resolution"][1]/2])
+    point[0] = point[0] * simVars["resolution"][0]/2
+    point[1] = point[1] * simVars["resolution"][1]/2
 
     # Apply offset
     screen_x = simVars["resolution"][0]/2 + point[0]
