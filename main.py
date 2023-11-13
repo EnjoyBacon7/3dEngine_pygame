@@ -2,6 +2,7 @@ import pygame
 import simulation_py.config as config
 import simulation_py.simulation as simulation
 import args
+import numpy as np
 
 import cProfile
 import pstats
@@ -41,7 +42,7 @@ def loadGameObjectObj(fileName):
         pointLines[i] = pointLines[i][2:-2].split(" ")
         for j in range(len(pointLines[i])):
             pointLines[i][j] = float(pointLines[i][j])
-    points = pointLines
+    points = np.array(pointLines)
 
     faceLines = list(filter(lambda x: x[0] == "f" and x[1] == " ", lines))
     for i in range(len(faceLines)):
@@ -53,7 +54,7 @@ def loadGameObjectObj(fileName):
         ]
         faceLines[i] = facePoints
 
-    faces = faceLines
+    faces = np.array(faceLines)
     object = {
         "points": points,
         "faces": faces
