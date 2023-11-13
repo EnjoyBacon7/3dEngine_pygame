@@ -3,6 +3,7 @@ import time
 import graph
 
 import cProfile
+import numpy as np
 
 import simulation_py.config as config
 import simulation_py.utilities as utilities
@@ -20,9 +21,8 @@ def init(args):
         "gameObjects": [],
 
         # Camera variables
-        "cameraCoords": [0, 0, -5],
-        
-        "cameraRot": [0, 0, 0],
+        "cameraCoords": np.array([0, 0, -5], dtype=float),
+        "cameraRot": np.array([0, 0, 0], dtype=float),
         "fov": 90,
         "farClip": 100,
         "nearClip": 0.1,
