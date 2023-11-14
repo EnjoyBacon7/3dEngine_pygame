@@ -4,8 +4,6 @@ RENDER_MODE = "solid"
 LOG_NB_FRAMES = 1000
 LOG_MAX_TIME = 60 # s
 
-
-
 OVERLAY_SIZE = (90, 20) # %
 OVERLAY_POS = (5, 75) # %
 
