@@ -1,6 +1,6 @@
 import pygame
-import simulation_py.config as config
-import simulation_py.simulation as simulation
+import graphics_engine.config as config
+import graphics_engine.simulation as simulation
 import args
 import numpy as np
 
@@ -18,8 +18,10 @@ def main():
 
     # Define some initial Points
     cube = loadGameObjectObj("my_cube.obj")
+    fluidBody = addFluidBody(1, np.array([0, 0, 0]), 100)
 
-    simVars["gameObjects"].append(cube)
+    #simVars["gameObjects"].append(cube)
+    simVars["gameObjects"].append(fluidBody)
 
     # Start the simulation
     simulation.loop(simVars, screen)
@@ -32,6 +34,28 @@ def initPygame(args):
     pygame.event.set_grab(True)
     pygame.display.set_caption("3dEngine Pygame")
     return screen
+
+def addFluidBody(concentration, position, nb_molecules):
+    # Create a fluid body
+    bodyDim = nb_molecules**(1/3)
+
+    points = []
+    velocities = []
+
+    for i in range(nb_molecules):
+        # Create a molecule
+        points.append(np.array([(position[0] + (i % bodyDim))/concentration, (position[1] + ((i // bodyDim) % bodyDim))/concentration, (position[2] + (i // (bodyDim**2)))/concentration]))
+        velocities.append(np.array([0, 0, 0]))
+    
+    # Add the molecules to the fluid body
+    fluidBody = {
+        "points": np.array(points, dtype=float),
+        "velocities": np.array(velocities, dtype=float),
+
+        "faces": np.array([]) # Not used
+    }
+
+    return fluidBody
 
 def loadGameObjectObj(fileName):
     objectFile = open("obj_files/" + fileName, "r")
@@ -61,8 +85,11 @@ def loadGameObjectObj(fileName):
     }
 
     objectFile.close()
-
+    
     return object
 
 if __name__ == "__main__":
-    main()
+    cProfile.run('main()', 'profile.out')
+
+    p = pstats.Stats('profile.out')
+    p.sort_stats('cumulative').print_stats(30)

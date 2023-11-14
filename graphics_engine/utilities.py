@@ -1,5 +1,5 @@
 import pygame
-import simulation_py.config as config
+import graphics_engine.config as config
 import numpy as np
 import math
 

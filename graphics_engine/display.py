@@ -3,8 +3,8 @@ import time
 import math
 import numpy as np
 
-import simulation_py.config as config
-import simulation_py.utilities as utilities
+import graphics_engine.config as config
+import graphics_engine.utilities as utilities
 
 # ----------------------------------------
 # Drawing functions
@@ -139,7 +139,7 @@ def drawWorld(simVars, screen):
             for point in object["points"]:
                 pre_baked_points.append(utilities.vec3tovec2(simVars, point, camera_rotation_matrix))
                 #pre_baked_colors.append(utilities.getColor(simVars, point))
-            
+             
             for i, face in enumerate(object["faces"]):
                 
                 # Project the face's points

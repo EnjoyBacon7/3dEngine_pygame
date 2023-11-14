@@ -5,10 +5,10 @@ import graph
 import cProfile
 import numpy as np
 
-import simulation_py.config as config
-import simulation_py.utilities as utilities
-import simulation_py.inputHandling as inputHandling
-import simulation_py.display as display
+import graphics_engine.config as config
+import graphics_engine.utilities as utilities
+import graphics_engine.inputHandling as inputHandling
+import graphics_engine.display as display
 
 # ----------------------------------------
 # Initialise the simulation
@@ -21,7 +21,7 @@ def init(args):
         "gameObjects": [],
 
         # Camera variables
-        "cameraCoords": np.array([0, 0, -5], dtype=float),
+        "cameraCoords": np.array([0, 0, -20], dtype=float),
         "cameraRot": np.array([0, 0, 0], dtype=float),
         "fov": 90,
         "farClip": 100,

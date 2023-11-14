@@ -2,7 +2,8 @@ import time
 import pygame
 import numpy as np
 
-import simulation_py.utilities as utilities
+import fluid_simulation.fluid_calcs as fluid
+import graphics_engine.utilities as utilities
 
 # ----------------------------------------
 # Event and input handling
@@ -129,3 +130,6 @@ def debugHandler(simVars, step):
             simVars["cameraRot"][2] -= step
         if keys[pygame.K_RIGHT]:
             simVars["cameraRot"][2] += step
+
+    if keys[pygame.K_j]:
+        simVars["gameObjects"][0] = fluid.step_fluid_sim(simVars["gameObjects"][0])
