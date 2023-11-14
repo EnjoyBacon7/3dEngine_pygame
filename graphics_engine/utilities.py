@@ -3,7 +3,7 @@ import graphics_engine.config as config
 import numpy as np
 import math
 
-
+# Update matrices and variables on pygame.VIDEORESIZE event
 def updateVarsOnResize(simVars):
     simVars["resolution"] = pygame.display.get_surface().get_size()
     simVars["overlay_size"] = (config.OVERLAY_SIZE[0]/100 * simVars["resolution"]
@@ -13,6 +13,7 @@ def updateVarsOnResize(simVars):
     simVars["projection_matrix"] = getProjectionMatrix(simVars)
 
 
+# Returns the projection matrix from current simVars (mostly run when window is resized and on init)
 def getProjectionMatrix(simVars):
     # Create projection matrix
     nearClip = simVars["nearClip"]
@@ -30,6 +31,7 @@ def getProjectionMatrix(simVars):
 
     return projection_matrix
 
+# Main projection function: From world space to screen space
 def vec3tovec2(simVars, point, camera_rotation_matrix):
 
     # To determine a point's position on the screen:
@@ -74,7 +76,7 @@ def vec3tovec2(simVars, point, camera_rotation_matrix):
 
     return (screen_x, screen_y)
 
-
+# Retrieve color value from point
 def getColor(simVars, point):
     dst_to_origin = math.sqrt(
         point[0] * point[0] + point[1] * point[1] + point[2] * point[2])
@@ -87,6 +89,7 @@ def getColor(simVars, point):
     return (color)
 
 
+# Returns the rotation matrix from the camera's orientation
 def getCameraRotationMatrix(camera_orientation):
     cos_x = math.cos(camera_orientation[0])
     sin_x = math.sin(camera_orientation[0])
