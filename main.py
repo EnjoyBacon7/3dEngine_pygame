@@ -29,13 +29,15 @@ def main():
     # Second pipe from simulation to display
     pipes = [multiprocessing.Pipe(duplex=False) for i in range(2)]
 
-    renderProcess = multiprocessing.Process(target=graphics_main.loop, args=(render_vars, runtime_arguments, pipes))
     fluidProcess = multiprocessing.Process(target=fluid.handleSimulation, args=(render_vars, pipes))
 
-    renderProcess.start()
     fluidProcess.start()
 
-    renderProcess.join()
+    # Use the main process for rendering
+    graphics_main.loop(render_vars, runtime_arguments, pipes)
+
+    fluidProcess.join()
+
 
 def addFluidBody(nb_molecules, bounds=[0, 0, 0, 10, 10, 10]):
     # Create a fluid body
