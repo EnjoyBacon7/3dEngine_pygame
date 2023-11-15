@@ -67,6 +67,19 @@ def drawWorld(simVars, screen):
     # Math out this frame's camera rotation matrix
     camera_rotation_matrix = utilities.getCameraRotationMatrix(simVars["cameraRot"])
 
+    # Render the fluids
+    for object in simVars["gameFluids"]:
+        for point in object["points"]:
+            point_2D = utilities.vec3tovec2(simVars, point, camera_rotation_matrix)
+            color = utilities.getColor(simVars, point)
+
+            if point_2D == (-1, -1):
+                continue
+
+            # Draw the point
+            pygame.draw.circle(screen, color, point_2D, 3)
+
+
     # Math out the 3d points on the canvas (1 unit away from the camera)
     if (simVars["render_mode"] == "points"):
         simVars["log"]["points"]["rendered_points"] = 0

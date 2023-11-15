@@ -11,6 +11,7 @@ import graphics_engine.utilities as utilities
 
 def handleInputs(simVars):
 
+
     timestamp = time.time()
     delta_time = timestamp - simVars["input_timestamp"]
 
@@ -130,3 +131,7 @@ def debugHandler(simVars, step):
             simVars["cameraRot"][2] -= step
         if keys[pygame.K_RIGHT]:
             simVars["cameraRot"][2] += step
+    
+    if keys[pygame.K_j]:
+        simVars["step_sim"] = True
+        print("Stepping simulation...")

@@ -1,8 +1,12 @@
 import pygame
 import graphics_engine.config as config
-import graphics_engine.simulation as simulation
+import graphics_engine.graphics_main as graphics_main
+import fluid_simulation.inputHandling as fluid
 import args
 import numpy as np
+import time
+
+import multiprocessing
 
 import cProfile
 import pstats
@@ -13,29 +17,27 @@ def main():
     runtime_arguments = args.init()
 
     # Initialise pygame and the simulation
-    screen = initPygame(runtime_arguments)
-    simVars = simulation.init(runtime_arguments)
+    render_vars = graphics_main.init(runtime_arguments)
 
     # Define some initial Points
-    cube = loadGameObjectObj("my_cube.obj")
-    fluidBody = addFluidBody(1, np.array([0, 0, 0]), 100)
+    fluidBody, boundingBox = addFluidBody(200)
 
-    #simVars["gameObjects"].append(cube)
-    simVars["gameObjects"].append(fluidBody)
+    render_vars["gameFluids"].append(fluidBody)
+    render_vars["gameObjects"].append(boundingBox)
 
-    # Start the simulation
-    simulation.loop(simVars, screen)
+    # First pipe from display to simulation
+    # Second pipe from simulation to display
+    pipes = [multiprocessing.Pipe(duplex=False) for i in range(2)]
 
+    renderProcess = multiprocessing.Process(target=graphics_main.loop, args=(render_vars, runtime_arguments, pipes))
+    fluidProcess = multiprocessing.Process(target=fluid.handleSimulation, args=(render_vars, pipes))
 
-def initPygame(args):
-    pygame.init()
-    screen = pygame.display.set_mode(args.resolution, pygame.RESIZABLE)
-    pygame.mouse.set_visible(False)
-    pygame.event.set_grab(True)
-    pygame.display.set_caption("3dEngine Pygame")
-    return screen
+    renderProcess.start()
+    fluidProcess.start()
 
-def addFluidBody(concentration, position, nb_molecules):
+    renderProcess.join()
+
+def addFluidBody(nb_molecules, bounds=[0, 0, 0, 10, 10, 10]):
     # Create a fluid body
     bodyDim = nb_molecules**(1/3)
 
@@ -44,18 +46,47 @@ def addFluidBody(concentration, position, nb_molecules):
 
     for i in range(nb_molecules):
         # Create a molecule
-        points.append(np.array([(position[0] + (i % bodyDim))/concentration, (position[1] + ((i // bodyDim) % bodyDim))/concentration, (position[2] + (i // (bodyDim**2)))/concentration]))
+        x = i % bounds[3] + bounds[0]
+        y = (i // bounds[3]) % bounds[4] + bounds[1] + np.random.rand() * 0.1
+        z = (i // (bounds[3] * bounds[4])) % bounds[5] + bounds[2] + np.random.rand() * 0.1
+        points.append(np.array([x, y, z]))
         velocities.append(np.array([0, 0, 0]))
     
     # Add the molecules to the fluid body
     fluidBody = {
         "points": np.array(points, dtype=float),
         "velocities": np.array(velocities, dtype=float),
-
-        "faces": np.array([]) # Not used
     }
 
-    return fluidBody
+    boundingBox = {
+        "points": np.array([
+            [bounds[0], bounds[1], bounds[2]],
+            [bounds[0], bounds[1], bounds[5]],
+            [bounds[0], bounds[4], bounds[2]],
+            [bounds[0], bounds[4], bounds[5]],
+            [bounds[3], bounds[1], bounds[2]],
+            [bounds[3], bounds[1], bounds[5]],
+            [bounds[3], bounds[4], bounds[2]],
+            [bounds[3], bounds[4], bounds[5]],
+        ], dtype=float),
+        "faces": np.array([
+            [1, 2, 1],
+            [1, 3, 1],
+            [1, 5, 1],
+            [2, 4, 2],
+            [2, 6, 2],
+            [3, 4, 3],
+            [3, 7, 3],
+            [4, 8, 4],
+            [5, 6, 5],
+            [5, 7, 5],
+            [6, 8, 6],
+            [7, 8, 7],
+
+        ], dtype=int)
+    }
+
+    return fluidBody, boundingBox
 
 def loadGameObjectObj(fileName):
     objectFile = open("obj_files/" + fileName, "r")

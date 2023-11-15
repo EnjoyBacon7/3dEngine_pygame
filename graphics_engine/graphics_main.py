@@ -4,11 +4,14 @@ import graph
 
 import cProfile
 import numpy as np
+import multiprocessing
+import sys
 
 import graphics_engine.config as config
 import graphics_engine.utilities as utilities
-import graphics_engine.inputHandling as inputHandling
-import graphics_engine.display as display
+import inputHandling as inputHandling
+import graphics_engine.rendering as rendering
+import pickle
 
 # ----------------------------------------
 # Initialise the simulation
@@ -19,9 +22,12 @@ def init(args):
     simVars = {
         # World composition
         "gameObjects": [],
+        "gameFluids": [],
+
+        "step_sim": False,
 
         # Camera variables
-        "cameraCoords": np.array([0, 0, -20], dtype=float),
+        "cameraCoords": np.array([-3.42, 8.2, -5.96], dtype=float),
         "cameraRot": np.array([0, 0, 0], dtype=float),
         "fov": 90,
         "farClip": 100,
@@ -80,18 +86,35 @@ def init(args):
     return simVars
 
 # ----------------------------------------
-# Main loop
+# Main graphics loop
 # ----------------------------------------
 
+def initPygame(args):
+    pygame.init()
+    screen = pygame.display.set_mode(args.resolution, pygame.RESIZABLE)
+    pygame.mouse.set_visible(False)
+    pygame.event.set_grab(True)
+    pygame.display.set_caption("3dEngine Pygame")
+    return screen
 
-def loop(simVars, screen):
+def loop(simVars, runtime_arguments, pipes):
+
+    screen = initPygame(runtime_arguments)
 
     while simVars["running"]:
+
+        # Get the updated simVars from the corresponding pipe
+        if pipes[1][0].poll():
+            simVars = pipes[1][0].recv()
 
         # Handle input and events
         inputHandling.handleInputs(simVars)
         # Display on screen
-        display.handleDisplay(simVars, screen)
+        rendering.handleDisplay(simVars, screen)
+
+        # Send the updated simVars to the simulation process
+        if not pipes[0][0].poll():
+            pipes[0][1].send(simVars)
 
     pygame.quit()
     if simVars["enable_logging"]:
