@@ -155,7 +155,7 @@ class Fluid:
 
         start = time.time()
         # Calculate the distance between the two particles
-        distance = np.sqrt(direction[0]**2 + direction[1]**2 + direction[2]**2)
+        distance = abs(direction[0]) + abs(direction[1]) + abs(direction[2])
 
         # Calculate the force between the two particles
         var = 0.05
