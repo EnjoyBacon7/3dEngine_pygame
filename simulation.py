@@ -1,6 +1,6 @@
 import numpy as np
 import uuid
-import math
+import time
 
 
 class Simulation:
@@ -141,6 +141,7 @@ class Fluid:
             return acceleration
 
         if particle1.position[0] == particle2.position[0] and particle1.position[1] == particle2.position[1] and particle1.position[2] == particle2.position[2]:
+            print("Particles are in the same position")
             particle1.position[0] += np.random.rand() * 0.01
             particle1.position[1] += np.random.rand() * 0.01
             particle1.position[2] += np.random.rand() * 0.01
@@ -152,6 +153,7 @@ class Fluid:
             particle1.position[2] - particle2.position[2]
         ])
 
+        start = time.time()
         # Calculate the distance between the two particles
         distance = np.sqrt(direction[0]**2 + direction[1]**2 + direction[2]**2)
 
@@ -163,13 +165,12 @@ class Fluid:
         if force > 0.5:
             force = 0.5
 
-        # Normalize the direction
-        length = np.sqrt(direction[0]**2 + direction[1]**2 + direction[2]**2)
-
-        direction /= length
+        direction /= distance
 
         # Calculate the acceleration
         acceleration = direction * force / particle1.mass * dt
+
+        # print((time.time() - start) * 1000)
 
         return acceleration
 
@@ -209,8 +210,8 @@ class Particle:
 
     def __init__(self, position, velocity, mass=1):
         self.id = uuid.uuid4()
-        self.position = position
-        self.velocity = velocity
+        self.position = np.array(position)
+        self.velocity = np.array(velocity)
         self.mass = mass
 
 
