@@ -168,7 +168,8 @@ class Fluid:
         direction /= distance
 
         # Calculate the acceleration
-        acceleration = direction * force / particle1.mass * dt
+        multiplier = force / particle1.mass * dt
+        acceleration = direction * multiplier
 
         # print((time.time() - start) * 1000)
 
