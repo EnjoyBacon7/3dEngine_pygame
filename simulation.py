@@ -100,20 +100,17 @@ class Fluid:
             The acceleration of the particle
         """
         accelerations = np.zeros((len(self.particles), 3))
-
-        interactions_list = np.zeros((len(self.particles), len(self.particles)))
-
+        interactions_list = set()
         for i in range(len(self.particles)):
             currentParticle = self.particles[i]
             for j in range(len(self.particles)):
                 otherParticle = self.particles[j]
-                if i != j and interactions_list[j][i] == 0:
+                if i != j and (j, i) not in interactions_list:
                     interaction_acceleration = self.calculateParticleInteraction(
                         currentParticle, otherParticle, dt)
                     accelerations[i] += interaction_acceleration
                     accelerations[j] -= interaction_acceleration
-                    interactions_list[i][j] = 1
-
+                    interactions_list.add((i, j))
         return accelerations
 
     def calculateParticleInteraction(self, particle1, particle2, dt):
@@ -134,6 +131,8 @@ class Fluid:
             The acceleration between the two particles
         """
 
+        start = time.time()
+
         acceleration = np.zeros(3)
 
         if particle1 is None or particle2 is None:
@@ -147,15 +146,14 @@ class Fluid:
             particle1.position[2] += np.random.rand() * 0.01
 
         # Calculate the vector between the two particles
-        direction = np.array([
+        vector = np.array([
             particle1.position[0] - particle2.position[0],
             particle1.position[1] - particle2.position[1],
             particle1.position[2] - particle2.position[2]
         ])
 
-        start = time.time()
         # Calculate the distance between the two particles
-        distance = abs(direction[0]) + abs(direction[1]) + abs(direction[2])
+        distance = abs(vector[0]) + abs(vector[1]) + abs(vector[2])
 
         # Calculate the force between the two particles
         force = (0.05/(2*distance)) - (0.025)
@@ -164,13 +162,11 @@ class Fluid:
         if force > 0.5:
             force = 0.5
 
-        direction /= distance
+        vector /= distance
 
-        # Calculate the acceleration
+        # Calculate the acceleration /// ONLY WORKS FOR PARTICLES OF EQUAL MASS
         multiplier = force / particle1.mass * dt
-        acceleration = direction * multiplier
-
-        # print((time.time() - start) * 1000)
+        acceleration = vector * multiplier
 
         return acceleration
 
@@ -210,8 +206,8 @@ class Particle:
 
     def __init__(self, position, velocity, mass=1):
         self.id = uuid.uuid4()
-        self.position = np.array(position)
-        self.velocity = np.array(velocity)
+        self.position = position
+        self.velocity = velocity
         self.mass = mass
 
 
