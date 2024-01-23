@@ -40,7 +40,8 @@ def init_sim():
     # Initialise pygame and the simulation
     render_class = graphics.Rendering(runtime_arguments)
 
-    simulation_class = simulation.Simulation([addGameObject("cube.obj")])
+    simulation_class = simulation.Simulation(gameObjects=[simulation.addGameObject("cube.obj")],
+                                             fluids=[simulation.addFluid(20)])
 
     screen = initPygame(render_class)
 
@@ -59,56 +60,15 @@ def loop_sim(render_class, simulation_class, screen):
     screen : pygame.Surface
         The pygame screen on which the simulation is rendered
     """
-
     while True:
-
         # Handle input and events
         inputHandling.handleInputs(render_class)
         # Display on screen
         render_class.draw(screen, simulation_class)
 
-
-def addGameObject(fileName):
-    """Adds a game object to the simulation.
-
-    Parameters
-    ----------
-    fileName : str
-        The name of the file containing the object
-
-    Returns
-    -------
-    object : simulation.GameObject
-        The game object
-    """
-
-    objectFile = open("obj_files/" + fileName, "r")
-
-    lines = objectFile.readlines()
-    pointLines = list(filter(lambda x: x[0] == "v" and x[1] == " ", lines))
-    for i in range(len(pointLines)):
-        pointLines[i] = pointLines[i][2:-2].split(" ")
-        for j in range(len(pointLines[i])):
-            pointLines[i][j] = float(pointLines[i][j])
-    points = np.array(pointLines)
-
-    faceLines = list(filter(lambda x: x[0] == "f" and x[1] == " ", lines))
-    for i in range(len(faceLines)):
-        faceLines[i] = faceLines[i][2:-2].split(" ")
-        facePoints = [
-            int(faceLines[i][0].split("/")[0]),
-            int(faceLines[i][1].split("/")[0]),
-            int(faceLines[i][2].split("/")[0]),
-        ]
-        faceLines[i] = facePoints
-
-    faces = np.array(faceLines)
-
-    object = simulation.GameObject(points, faces)
-
-    objectFile.close()
-
-    return object
+        # Update the simulation
+        for fluid in simulation_class.fluids:
+            fluid.update(0.1)
 
 
 def initPygame(render_class):
