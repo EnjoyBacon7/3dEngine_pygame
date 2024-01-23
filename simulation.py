@@ -158,10 +158,9 @@ class Fluid:
         distance = abs(direction[0]) + abs(direction[1]) + abs(direction[2])
 
         # Calculate the force between the two particles
-        var = 0.05
-        force = ((1/(2*distance))*var) - (var/2)
+        force = (0.05/(2*distance)) - (0.025)
         if force < 0:
-            force = 0
+            return acceleration
         if force > 0.5:
             force = 0.5
 
