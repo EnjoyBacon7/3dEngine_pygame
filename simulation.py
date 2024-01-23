@@ -145,12 +145,15 @@ class Fluid:
             particle1.position[1] += np.random.rand() * 0.01
             particle1.position[2] += np.random.rand() * 0.01
 
+        # Calculate the vector between the two particles
+        direction = np.array([
+            particle1.position[0] - particle2.position[0],
+            particle1.position[1] - particle2.position[1],
+            particle1.position[2] - particle2.position[2]
+        ])
+
         # Calculate the distance between the two particles
-        distance = np.sqrt(
-            (particle1.position[0] - particle2.position[0])**2 +
-            (particle1.position[1] - particle2.position[1])**2 +
-            (particle1.position[2] - particle2.position[2])**2
-        )
+        distance = np.sqrt(direction[0]**2 + direction[1]**2 + direction[2]**2)
 
         # Calculate the force between the two particles
         var = 0.05
@@ -159,13 +162,6 @@ class Fluid:
             force = 0
         if force > 0.5:
             force = 0.5
-
-        # Calculate the direction of the force
-        direction = np.array([
-            particle1.position[0] - particle2.position[0],
-            particle1.position[1] - particle2.position[1],
-            particle1.position[2] - particle2.position[2]
-        ])
 
         # Normalize the direction
         length = np.sqrt(direction[0]**2 + direction[1]**2 + direction[2]**2)
