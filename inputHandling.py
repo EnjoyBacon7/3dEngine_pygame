@@ -8,6 +8,13 @@ import numpy as np
 
 
 def handleInputs(render_class):
+    """Handles inputs and events
+
+    Parameters
+    ----------
+    render_class : graphics.Rendering
+        The rendering class responsible for rendering the simulation
+    """
 
     step = 0.1
 
@@ -18,6 +25,13 @@ def handleInputs(render_class):
 
 
 def handleEvents(render_class):
+    """Handles events pygame events and key presses
+
+    Parameters
+    ----------
+    render_class : graphics.Rendering
+        The rendering class responsible for rendering the simulation
+    """
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -46,6 +60,15 @@ def handleEvents(render_class):
 
 
 def movementHandler(render_class, step):
+    """Handles movement of the camera
+
+    Parameters
+    ----------
+    render_class : graphics.Rendering
+        The rendering class responsible for rendering the simulation
+    step : float
+        The step size of the movement
+    """
 
     keys = pygame.key.get_pressed()
 
@@ -89,6 +112,13 @@ def movementHandler(render_class, step):
 
 
 def rotationHandler(render_class):
+    """Handles rotation of the camera using the mouse
+
+    Parameters
+    ----------
+    render_class : graphics.Rendering
+        The rendering class responsible for rendering the simulation
+    """
 
     mouse_move = pygame.mouse.get_rel()
 
@@ -97,6 +127,16 @@ def rotationHandler(render_class):
 
 
 def debugHandler(render_class, step):
+    """Handles debug inputs and temporary debug features
+
+    Parameters
+    ----------
+    render_class : graphics.Rendering
+        The rendering class responsible for rendering the simulation
+    step : float
+        The step size of the movement
+    """
+
     keys = pygame.key.get_pressed()
 
     if keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]:

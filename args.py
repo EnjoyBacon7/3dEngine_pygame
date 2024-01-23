@@ -3,6 +3,13 @@ import json
 
 
 def init():
+    """Initialises the command line arguments and returns them.
+
+    Returns
+    -------
+    args : argparse.Namespace
+        The command line arguments
+    """
 
     with open("./default_vars.json") as f:
         defaults = json.load(f)

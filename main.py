@@ -11,6 +11,8 @@ import pstats
 
 
 def main():
+    """The main function of the program. It initialises the simulation and starts the simulation loop.
+    """
 
     # Retrieve the initial variables
     render_class, simulation_class, screen = init_sim()
@@ -20,6 +22,18 @@ def main():
 
 
 def init_sim():
+    """Initialises the simulation and returns the initial variables.
+
+    Returns
+    -------
+    render_class : graphics.Rendering
+        The rendering class
+    simulation_class : simulation.Simulation
+        The simulation class
+    screen : pygame.Surface
+        The pygame screen
+    """
+
     # Retrieve arguments from the command line
     runtime_arguments = args.init()
 
@@ -34,6 +48,17 @@ def init_sim():
 
 
 def loop_sim(render_class, simulation_class, screen):
+    """The simulation loop. This is where the simulation is updated and rendered.
+
+    Parameters
+    ----------
+    render_class : graphics.Rendering
+        The rendering class responsible for rendering the simulation
+    simulation_class : simulation.Simulation
+        The simulation class responsible for updating the simulation
+    screen : pygame.Surface
+        The pygame screen on which the simulation is rendered
+    """
 
     while True:
 
@@ -44,6 +69,19 @@ def loop_sim(render_class, simulation_class, screen):
 
 
 def addGameObject(fileName):
+    """Adds a game object to the simulation.
+
+    Parameters
+    ----------
+    fileName : str
+        The name of the file containing the object
+
+    Returns
+    -------
+    object : simulation.GameObject
+        The game object
+    """
+
     objectFile = open("obj_files/" + fileName, "r")
 
     lines = objectFile.readlines()
@@ -74,6 +112,19 @@ def addGameObject(fileName):
 
 
 def initPygame(render_class):
+    """Initialises pygame and returns the screen.
+
+    Parameters
+    ----------
+    render_class : graphics.Rendering
+        The rendering class
+
+    Returns
+    -------
+    screen : pygame.Surface
+        The pygame screen
+    """
+
     pygame.init()
     screen = pygame.display.set_mode(render_class.resolution, pygame.RESIZABLE)
     pygame.mouse.set_visible(False)
