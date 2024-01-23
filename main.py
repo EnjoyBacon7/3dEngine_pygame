@@ -64,7 +64,7 @@ def loop_sim(render_class, simulation_class, screen):
 
     dt = 0.00001
     count = 0
-    while True:
+    while count < 100:
 
         frame_start = time.time()
 
