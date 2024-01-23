@@ -2,53 +2,40 @@ import time
 import pygame
 import numpy as np
 
-import fluid_simulation.fluid_calcs as fluid
-import graphics_engine.utilities as utilities
-
 # ----------------------------------------
 # Event and input handling
 # ----------------------------------------
 
-def handleInputs(simVars):
+
+def handleInputs(render_class):
+
+    step = 0.1
+
+    handleEvents(render_class)
+    debugHandler(render_class, step)
+    movementHandler(render_class, step)
+    rotationHandler(render_class)
 
 
-    timestamp = time.time()
-    delta_time = timestamp - simVars["input_timestamp"]
-
-    step = 1 * delta_time
-
-    handleEvents(simVars, step)
-    debugHandler(simVars, step)
-    movementHandler(simVars, step)
-    rotationHandler(simVars, step)
-
-    # Log the input handler time for this frame
-    if simVars["enable_logging"]:
-        simVars["log"]["input_handler_time"].append(time.time() - timestamp)
-
-    # Update the input timestamp (storing this frame's timestamp)
-    simVars["input_timestamp"] = timestamp
-
-def handleEvents(simVars, step):
+def handleEvents(render_class):
 
     for event in pygame.event.get():
-        if event.type == pygame.QUIT: 
-            pygame.quit() # A quit event does not warrant a plot. It is a request for immediate termination
+        if event.type == pygame.QUIT:
+            pygame.quit()  # A quit event does not warrant a plot. It is a request for immediate termination (When plotting is implemented)
+            exit()
         if event.type == pygame.VIDEORESIZE:
-            utilities.updateVarsOnResize(simVars)
+            render_class.updateVarsOnResize(render_class)
 
         # Here we handle key presses (not key holds)
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                simVars["running"] = False
             if event.key == pygame.K_SPACE:
-                simVars["show_overlay"] = not simVars["show_overlay"]
+                render_class.show_overlay = not render_class.show_overlay
             if event.key == pygame.K_p:
-                simVars["render_mode"] = "points"
+                render_class.render_mode = "points"
             if event.key == pygame.K_o:
-                simVars["render_mode"] = "wireframe"
+                render_class.render_mode = "wireframe"
             if event.key == pygame.K_i:
-                simVars["render_mode"] = "solid"
+                render_class.render_mode = "solid"
             if event.key == pygame.K_EQUALS:
                 if pygame.mouse.get_visible():
                     pygame.mouse.set_visible(False)
@@ -57,16 +44,20 @@ def handleEvents(simVars, step):
                     pygame.mouse.set_visible(True)
                     pygame.event.set_grab(False)
 
-def movementHandler(simVars, step):
+
+def movementHandler(render_class, step):
 
     keys = pygame.key.get_pressed()
 
     # Save calculations by calculating only if needed
-    if not (keys[pygame.K_s] or keys[pygame.K_z] or keys[pygame.K_q] or keys[pygame.K_d] or keys[pygame.K_e] or keys[pygame.K_a]):
+    if not (
+            keys[pygame.K_s] or keys[pygame.K_z] or keys[pygame.K_q] or
+            keys[pygame.K_d] or keys[pygame.K_e] or keys[pygame.K_a]):
         return
 
     # Calculate camera direction vector
-    dir_vec3 = np.array([np.sin(simVars["cameraRot"][1]), -np.sin(simVars["cameraRot"][0]), -np.cos(simVars["cameraRot"][1])])
+    dir_vec3 = np.array([np.sin(render_class.camera["rotation"][1]), -np.sin(render_class.camera["rotation"]
+                        [0]), -np.cos(render_class.camera["rotation"][1])])
 
     # Normalize direction vector
     length = np.sqrt(dir_vec3[0]**2 + dir_vec3[1]**2 + dir_vec3[2]**2)
@@ -82,56 +73,35 @@ def movementHandler(simVars, step):
     length = np.sqrt(strafe_vec3[0]**2 + strafe_vec3[1]**2 + strafe_vec3[2]**2)
     strafe_vec3 /= length
 
-    
     # Apply movement
     if keys[pygame.K_s]:
-        simVars["cameraCoords"] += dir_vec3 * step
+        render_class.camera["position"] += dir_vec3 * step
     if keys[pygame.K_z]:
-        simVars["cameraCoords"] -= dir_vec3 * step
+        render_class.camera["position"] -= dir_vec3 * step
     if keys[pygame.K_q]:
-        simVars["cameraCoords"] -= strafe_vec3 * step
+        render_class.camera["position"] -= strafe_vec3 * step
     if keys[pygame.K_d]:
-        simVars["cameraCoords"] += strafe_vec3 * step
+        render_class.camera["position"] += strafe_vec3 * step
     if keys[pygame.K_e]:
-        simVars["cameraCoords"][1] += step
+        render_class.camera["position"][1] += step
     if keys[pygame.K_a]:
-        simVars["cameraCoords"][1] -= step
+        render_class.camera["position"][1] -= step
 
-def rotationHandler(simVars, step):
+
+def rotationHandler(render_class):
 
     mouse_move = pygame.mouse.get_rel()
 
-    simVars["cameraRot"][0] -= mouse_move[1]/100
-    simVars["cameraRot"][1] -= mouse_move[0]/100
+    render_class.camera["rotation"][0] -= mouse_move[1]/100
+    render_class.camera["rotation"][1] -= mouse_move[0]/100
 
-def debugHandler(simVars, step):
+
+def debugHandler(render_class, step):
     keys = pygame.key.get_pressed()
-
-    # Increase and decrease fov
-    if keys[pygame.K_m]:
-        simVars["fov"] -= step
-        simVars["projection_matrix"] = utilities.getProjectionMatrix(simVars)
-    if keys[pygame.K_l]:
-        simVars["fov"] += step
-        simVars["projection_matrix"] = utilities.getProjectionMatrix(simVars)
-    
-    # Incresae and decrease Y value of all points' poisitions
-    if keys[pygame.K_DOWN] or keys[pygame.K_UP]:
-        for i in range(len(simVars["gameObjects"])):
-            object = simVars["gameObjects"][i]
-            for j in range(len(object["points"])):
-                if keys[pygame.K_DOWN]:
-                    object["points"][j][1] -= step
-                if keys[pygame.K_UP]:
-                    object["points"][j][1] += step
 
     if keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]:
         # Rotate camera on z axis
         if keys[pygame.K_LEFT]:
-            simVars["cameraRot"][2] -= step
+            render_class.camera["rotation"][2] -= step
         if keys[pygame.K_RIGHT]:
-            simVars["cameraRot"][2] += step
-    
-    if keys[pygame.K_j]:
-        simVars["step_sim"] = True
-        print("Stepping simulation...")
+            render_class.camera["rotation"][2] += step
