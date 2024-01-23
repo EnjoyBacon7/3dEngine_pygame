@@ -1,0 +1,13 @@
+{
+
+    "overlay_size": [90, 20],
+    "overlay_pos": [5, 75],
+
+    "color_overlay_bg": [100, 100, 100, 100],
+    "color_overlay_border": [255, 255, 255],
+    "color_overlay_txt": [255, 255, 255],
+    "color_points": [255, 255, 255],
+    "color_bg": [200, 200, 200]
+
+
+}

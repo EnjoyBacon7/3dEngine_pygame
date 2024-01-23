@@ -1,0 +1,6 @@
+{
+    "resolution": [1280, 720],
+    "show_overlay": false,
+    "render_mode": "wireframe",
+    "fps": 60
+}
