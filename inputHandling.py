@@ -121,7 +121,6 @@ def rotationHandler(render_class):
     """
 
     mouse_move = pygame.mouse.get_rel()
-    print(mouse_move)
     render_class.camera["rotation"][0] -= mouse_move[1]/100
     render_class.camera["rotation"][1] -= mouse_move[0]/100
 

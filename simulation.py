@@ -1,5 +1,6 @@
 import numpy as np
 import uuid
+import math
 
 
 class Simulation:
@@ -56,37 +57,40 @@ class Fluid:
             The time step
         """
 
+        accelerations = self.calculateParticleAccelerations(dt)
+
         for particle in self.particles:
-            particle.velocity += self.calculateParticleAcceleration(particle.id, dt)
+            particle.velocity += accelerations[self.particles.index(particle)]
             particle.position += particle.velocity
 
             # Check for collisions with the bounds
+
             if particle.position[0] < self.bounds[0]:
                 particle.position[0] = self.bounds[0]
-                particle.velocity[0] = 0
+                particle.velocity[0] = - (particle.velocity[0] * 0.5)
             elif particle.position[0] > self.bounds[3]:
                 particle.position[0] = self.bounds[3]
-                particle.velocity[0] = 0
+                particle.velocity[0] = - (particle.velocity[0] * 0.5)
             if particle.position[1] < self.bounds[1]:
                 particle.position[1] = self.bounds[1]
-                particle.velocity[1] = 0
+                particle.velocity[1] = - (particle.velocity[1] * 0.5)
             elif particle.position[1] > self.bounds[4]:
                 particle.position[1] = self.bounds[4]
-                particle.velocity[1] = 0
+                particle.velocity[1] = - (particle.velocity[1] * 0.5)
             if particle.position[2] < self.bounds[2]:
                 particle.position[2] = self.bounds[2]
-                particle.velocity[2] = 0
+                particle.velocity[2] = - (particle.velocity[2] * 0.5)
             elif particle.position[2] > self.bounds[5]:
                 particle.position[2] = self.bounds[5]
-                particle.velocity[2] = 0
+                particle.velocity[2] = - (particle.velocity[2] * 0.5)
 
-    def calculateParticleAcceleration(self, particleId, dt):
-        """Calculates the acceleration of a particle
+    def calculateParticleAccelerations(self, dt):
+        """Calculates the accelerations of all particles
 
         Parameters
         ----------
-        particleId : uuid.UUID
-            The id of the particle
+        particle: Particle
+            The particle
         dt : float
             The time step
 
@@ -95,28 +99,32 @@ class Fluid:
         acceleration : np.array
             The acceleration of the particle
         """
+        accelerations = np.zeros((len(self.particles), 3))
 
-        acceleration = np.zeros(3)
+        interactions_list = np.zeros((len(self.particles), len(self.particles)))
 
-        for particle in self.particles:
-            # Calculate particle interactions
-            if particle.id != particleId:
-                acceleration += self.calculateParticleInteraction(
-                    particleId, particle.id, dt)
-            # Add gravity
-            acceleration += np.array([0, -9.81, 0]) / particle.mass * dt
+        for i in range(len(self.particles)):
+            currentParticle = self.particles[i]
+            for j in range(len(self.particles)):
+                otherParticle = self.particles[j]
+                if i != j and interactions_list[j][i] == 0:
+                    interaction_acceleration = self.calculateParticleInteraction(
+                        currentParticle, otherParticle, dt)
+                    accelerations[i] += interaction_acceleration
+                    accelerations[j] -= interaction_acceleration
+                    interactions_list[i][j] = 1
 
-        return acceleration
+        return accelerations
 
-    def calculateParticleInteraction(self, particleId1, particleId2, dt):
+    def calculateParticleInteraction(self, particle1, particle2, dt):
         """Calculates the acceleration between two particles
 
         Parameters
         ----------
-        particleId1 : uuid.UUID
-            The id of the first particle
-        particleId2 : uuid.UUID
-            The id of the second particle
+        particle1 : Particle
+            The first particle
+        particle2 : Particle
+            The second particle
         dt : float
             The time step
 
@@ -128,12 +136,14 @@ class Fluid:
 
         acceleration = np.zeros(3)
 
-        particle1 = self.getParticleById(particleId1)
-        particle2 = self.getParticleById(particleId2)
-
         if particle1 is None or particle2 is None:
             print("Particle not found")
             return acceleration
+
+        if particle1.position[0] == particle2.position[0] and particle1.position[1] == particle2.position[1] and particle1.position[2] == particle2.position[2]:
+            particle1.position[0] += np.random.rand() * 0.01
+            particle1.position[1] += np.random.rand() * 0.01
+            particle1.position[2] += np.random.rand() * 0.01
 
         # Calculate the distance between the two particles
         distance = np.sqrt(
@@ -143,7 +153,12 @@ class Fluid:
         )
 
         # Calculate the force between the two particles
-        force = 10 * (distance - 1)
+        var = 0.05
+        force = ((1/(2*distance))*var) - (var/2)
+        if force < 0:
+            force = 0
+        if force > 0.5:
+            force = 0.5
 
         # Calculate the direction of the force
         direction = np.array([
@@ -154,6 +169,7 @@ class Fluid:
 
         # Normalize the direction
         length = np.sqrt(direction[0]**2 + direction[1]**2 + direction[2]**2)
+
         direction /= length
 
         # Calculate the acceleration
@@ -220,7 +236,13 @@ def addFluid(nb_particles, bounds=[0, 0, 0, 10, 10, 10]):
 
     particles = []
     for i in range(nb_particles):
-        particles.append(Particle(np.random.rand(3) * 10, np.zeros(3)))
+        position = np.array([
+            np.random.rand() * (bounds[3] - bounds[0]) + bounds[0],
+            np.random.rand() * (bounds[4] - bounds[1]) + bounds[1],
+            np.random.rand() * (bounds[5] - bounds[2]) + bounds[2]
+        ])
+        velocity = np.zeros(3)
+        particles.append(Particle(position, velocity))
 
     fluid = Fluid(particles, bounds)
 

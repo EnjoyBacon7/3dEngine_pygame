@@ -8,6 +8,7 @@ import pygame
 
 import cProfile
 import pstats
+import time
 
 
 def main():
@@ -41,7 +42,7 @@ def init_sim():
     render_class = graphics.Rendering(runtime_arguments)
 
     simulation_class = simulation.Simulation(gameObjects=[simulation.addGameObject("cube.obj")],
-                                             fluids=[simulation.addFluid(20)])
+                                             fluids=[simulation.addFluid(200, [0, 0, 0, 2, 2, 2])])
 
     screen = initPygame(render_class)
 
@@ -60,7 +61,13 @@ def loop_sim(render_class, simulation_class, screen):
     screen : pygame.Surface
         The pygame screen on which the simulation is rendered
     """
+
+    dt = 0.00001
+    count = 0
     while True:
+
+        frame_start = time.time()
+
         # Handle input and events
         inputHandling.handleInputs(render_class)
         # Display on screen
@@ -68,7 +75,10 @@ def loop_sim(render_class, simulation_class, screen):
 
         # Update the simulation
         for fluid in simulation_class.fluids:
-            fluid.update(0.1)
+            fluid.update(dt)
+
+        dt = time.time() - frame_start
+        count += 1
 
 
 def initPygame(render_class):
