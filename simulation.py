@@ -1,5 +1,4 @@
 import numpy as np
-import uuid
 import time
 
 
@@ -93,9 +92,9 @@ class Fluid:
         dt : float
             The time step
         """
-        
+
         for i, currentParticle in enumerate(self.particles):
-            for j, otherParticle in enumerate(self.particles[i+1:], start=i+1):
+            for otherParticle in self.particles[i+1:]:
                 interaction_acceleration = self.calculateParticleInteraction(
                     currentParticle, otherParticle, dt)
                 currentParticle.velocity += interaction_acceleration
@@ -119,13 +118,7 @@ class Fluid:
             The acceleration between the two particles
         """
 
-        start = time.time()
-
         acceleration = np.zeros(3)
-
-        if particle1 is None or particle2 is None:
-            print("Particle not found")
-            return acceleration
 
         if particle1.position[0] == particle2.position[0] and particle1.position[1] == particle2.position[1] and particle1.position[2] == particle2.position[2]:
             print("Particles are in the same position")
@@ -154,26 +147,6 @@ class Fluid:
 
         return acceleration
 
-    def getParticleById(self, particleId):
-        """Returns the particle with the given id
-
-        Parameters
-        ----------
-        particleId : uuid.UUID
-            The id of the particle
-
-        Returns
-        -------
-        particle : Particle
-            The particle with the given id
-        """
-
-        for particle in self.particles:
-            if particle.id == particleId:
-                return particle
-
-        return None
-
 
 class Particle:
     """A particle is a point in space with a velocity and a mass
@@ -189,7 +162,6 @@ class Particle:
     """
 
     def __init__(self, position, velocity, mass=1):
-        self.id = uuid.uuid4()
         self.position = position
         self.velocity = velocity
         self.mass = mass
