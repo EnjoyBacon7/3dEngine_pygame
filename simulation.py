@@ -100,18 +100,18 @@ class Fluid:
         acceleration : np.array
             The acceleration of the particle
         """
+
         accelerations = np.zeros((len(self.particles), 3))
-        interactions_list = set()
         for i in range(len(self.particles)):
             currentParticle = self.particles[i]
-            for j in range(len(self.particles)):
+            for j in range(i, len(self.particles)):
                 otherParticle = self.particles[j]
-                if i != j and (j, i) not in interactions_list:
+                if i != j:
                     interaction_acceleration = self.calculateParticleInteraction(
                         currentParticle, otherParticle, dt)
                     accelerations[i] += interaction_acceleration
                     accelerations[j] -= interaction_acceleration
-                    interactions_list.add((i, j))
+
         return accelerations
 
     def calculateParticleInteraction(self, particle1, particle2, dt):
