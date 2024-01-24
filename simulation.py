@@ -57,10 +57,9 @@ class Fluid:
             The time step
         """
 
-        accelerations = self.calculateParticleAccelerations(dt)
+        self.applyParticleInteractions(dt)
 
         for i, particle in enumerate(self.particles):
-            particle.velocity += accelerations[i]
             particle.position += particle.velocity
 
             # Check for collisions with the bounds
@@ -84,9 +83,8 @@ class Fluid:
                 particle.position[2] = self.bounds[5]
                 particle.velocity[2] = - (particle.velocity[2] * 0.5)
 
-
-    def calculateParticleAccelerations(self, dt):
-        """Calculates the accelerations of all particles
+    def applyParticleInteractions(self, dt):
+        """Calculates and applies the accelerations of all particles
 
         Parameters
         ----------
@@ -94,25 +92,14 @@ class Fluid:
             The particle
         dt : float
             The time step
-
-        Returns
-        -------
-        acceleration : np.array
-            The acceleration of the particle
         """
-
-        accelerations = np.zeros((len(self.particles), 3))
-        for i in range(len(self.particles)):
-            currentParticle = self.particles[i]
-            for j in range(i, len(self.particles)):
-                otherParticle = self.particles[j]
-                if i != j:
-                    interaction_acceleration = self.calculateParticleInteraction(
-                        currentParticle, otherParticle, dt)
-                    accelerations[i] += interaction_acceleration
-                    accelerations[j] -= interaction_acceleration
-
-        return accelerations
+        
+        for i, currentParticle in enumerate(self.particles):
+            for j, otherParticle in enumerate(self.particles[i+1:], start=i+1):
+                interaction_acceleration = self.calculateParticleInteraction(
+                    currentParticle, otherParticle, dt)
+                currentParticle.velocity += interaction_acceleration
+                otherParticle.velocity -= interaction_acceleration
 
     def calculateParticleInteraction(self, particle1, particle2, dt):
         """Calculates the acceleration between two particles
