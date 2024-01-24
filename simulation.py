@@ -59,8 +59,8 @@ class Fluid:
 
         accelerations = self.calculateParticleAccelerations(dt)
 
-        for particle in self.particles:
-            particle.velocity += accelerations[self.particles.index(particle)]
+        for i, particle in enumerate(self.particles):
+            particle.velocity += accelerations[i]
             particle.position += particle.velocity
 
             # Check for collisions with the bounds
@@ -83,6 +83,7 @@ class Fluid:
             elif particle.position[2] > self.bounds[5]:
                 particle.position[2] = self.bounds[5]
                 particle.velocity[2] = - (particle.velocity[2] * 0.5)
+
 
     def calculateParticleAccelerations(self, dt):
         """Calculates the accelerations of all particles
@@ -146,11 +147,7 @@ class Fluid:
             particle1.position[2] += np.random.rand() * 0.01
 
         # Calculate the vector between the two particles
-        vector = np.array([
-            particle1.position[0] - particle2.position[0],
-            particle1.position[1] - particle2.position[1],
-            particle1.position[2] - particle2.position[2]
-        ])
+        vector = particle1.position - particle2.position
 
         # Calculate the distance between the two particles
         distance = abs(vector[0]) + abs(vector[1]) + abs(vector[2])
