@@ -78,6 +78,31 @@ class Rendering:
 
         # renderFluids(simulation, screen, camera_rotation_matrix)
         self.renderGameObjects(simulation, screen, camera_rotation_matrix)
+        self.renderFluids(simulation, screen, camera_rotation_matrix)
+
+    def renderFluids(self, simulation, screen, camera_rotation_matrix):
+        """Renders the fluids on the screen using the provided simulation class
+
+        Parameters
+        ----------
+        simulation : Simulation
+            The simulation to draw
+        screen : pygame.Surface
+            The surface to draw on
+        camera_rotation_matrix : numpy.ndarray
+            The rotation matrix of the camera
+        """
+
+        for fluid in simulation.fluids:
+            for particle in fluid.particles:
+                point_2D = self.vec3tovec2(particle.position, camera_rotation_matrix)
+                color = self.consts["color_fluid"]
+
+                if point_2D == (-1, -1):
+                    continue
+
+                # Draw the point
+                pygame.draw.circle(screen, color, point_2D, 3)
 
     def renderGameObjects(self, simulation, screen, camera_rotation_matrix):
         """Renders the gameObjects on the screen using the provided simulation class
