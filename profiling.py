@@ -95,9 +95,6 @@ def graph_profile(profile_data):
     for i in range(len(profile_data["update"])):
         average_times.append(np.average(profile_data["update"][i]) * 1000)
 
-    for i in range(len(average_times)):
-        plt.text(i + 1, 0, f"{average_times[i]:.2f}ms", horizontalalignment='center', verticalalignment='center')
-
     plt.savefig("./profiles/profile_graph.png")
 
     plt.show()
