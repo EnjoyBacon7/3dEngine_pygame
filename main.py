@@ -65,10 +65,8 @@ def loop_sim(render_class, simulation_class, screen):
     screen : pygame.Surface
         The pygame screen on which the simulation is rendered
     """
-
     dt = 0.00001
-    count = 0
-    while count < 100:
+    while True:
 
         frame_start = time.time()
 
@@ -82,7 +80,6 @@ def loop_sim(render_class, simulation_class, screen):
             fluid.update(dt)
 
         dt = time.time() - frame_start
-        count += 1
 
 
 def initPygame(render_class):
