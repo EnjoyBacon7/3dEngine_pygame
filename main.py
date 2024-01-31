@@ -1,6 +1,7 @@
 import graphics_engine.graphics as graphics
 import simulation
 import inputHandling
+import profiling
 
 import args
 import numpy as np
@@ -16,10 +17,13 @@ def main():
     """
 
     # Retrieve the initial variables
-    render_class, simulation_class, screen = init_sim()
+    render_class, simulation_class, runtime_arguments, screen = init_sim()
 
     # Start the simulation loop
-    loop_sim(render_class, simulation_class, screen)
+    if runtime_arguments.profile_run == False:
+        loop_sim(render_class, simulation_class, screen)
+    else:
+        profiling.start(runtime_arguments, screen)
 
 
 def init_sim():
@@ -42,11 +46,11 @@ def init_sim():
     render_class = graphics.Rendering(runtime_arguments)
 
     simulation_class = simulation.Simulation(gameObjects=[simulation.addGameObject("cube.obj")],
-                                             fluids=[simulation.addFluid(200, [0, 0, 0, 2, 2, 2])])
+                                             fluids=[simulation.addFluid(15, [0, 0, 0, 2, 2, 2])])
 
     screen = initPygame(render_class)
 
-    return render_class, simulation_class, screen
+    return render_class, simulation_class, runtime_arguments, screen
 
 
 def loop_sim(render_class, simulation_class, screen):
@@ -104,7 +108,10 @@ def initPygame(render_class):
 
 
 if __name__ == "__main__":
-    cProfile.run('main()', 'profile.out')
 
-    p = pstats.Stats('profile.out')
-    p.sort_stats('cumulative').print_stats(30)
+    main()
+
+    # cProfile.run('main()', 'profile.out')
+
+    # p = pstats.Stats('profile.out')
+    # p.sort_stats('cumulative').print_stats(30)
