@@ -22,11 +22,11 @@ def start(runtime_arguments, screen):
     max_particles = 200
 
     # Initialise pygame and the simulation
-    render_class = graphics.Rendering(runtime_arguments)
+    render_class = graphics.Rendering(screen, runtime_arguments)
     render_class.camera["position"] = np.array([0.78, 1.1, -2.26])
 
     simulation_class = simulation.Simulation(gameObjects=[],
-                                             fluids=[simulation.addFluid(max_particles, [0, 0, 0, 2, 2, 2])])
+                                             fluids=[simulation.addFluid(max_particles, [0, 0, 0], [2, 2, 2])])
 
     profile_data = {
         "update": [],
@@ -50,7 +50,7 @@ def start(runtime_arguments, screen):
 
             display_time = time.time()
             # Display on screen
-            render_class.draw(screen, simulation_class)
+            render_class.draw(simulation_class)
 
             update_time = time.time()
             # Update the simulation

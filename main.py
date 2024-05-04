@@ -13,7 +13,7 @@ import time
 
 
 def main():
-    """The main function of the program. It initialises the simulation and starts the simulation loop.
+    """The entry point of the program. It initialises the simulation and starts the simulation loop.
     """
 
     # Retrieve the initial variables
@@ -42,13 +42,13 @@ def init_sim():
     # Retrieve arguments from the command line
     runtime_arguments = args.init()
 
-    # Initialise pygame and the simulation
-    render_class = graphics.Rendering(runtime_arguments)
+    screen = initPygame(runtime_arguments.resolution)
+
+    # Initialise the render engine and the simulation
+    render_class = graphics.Rendering(screen, runtime_arguments)
 
     simulation_class = simulation.Simulation(gameObjects=[simulation.addGameObject("cube.obj")],
-                                             fluids=[simulation.addFluid(15, [0, 0, 0, 2, 2, 2])])
-
-    screen = initPygame(render_class)
+                                             fluids=[simulation.addFluid(15, [-1, -1, 2], [2, 2, 2])])
 
     return render_class, simulation_class, runtime_arguments, screen
 
@@ -65,6 +65,8 @@ def loop_sim(render_class, simulation_class, screen):
     screen : pygame.Surface
         The pygame screen on which the simulation is rendered
     """
+
+    # Initialize dt with an arbitrary small value
     dt = 0.00001
     while True:
 
@@ -73,7 +75,7 @@ def loop_sim(render_class, simulation_class, screen):
         # Handle input and events
         inputHandling.handleInputs(render_class)
         # Display on screen
-        render_class.draw(screen, simulation_class)
+        render_class.draw(simulation_class)
 
         # Update the simulation
         for fluid in simulation_class.fluids:
@@ -82,7 +84,7 @@ def loop_sim(render_class, simulation_class, screen):
         dt = time.time() - frame_start
 
 
-def initPygame(render_class):
+def initPygame(resolution):
     """Initialises pygame and returns the screen.
 
     Parameters
@@ -92,12 +94,12 @@ def initPygame(render_class):
 
     Returns
     -------
-    screen : pygame.Surface
-        The pygame screen
+    resolution : pygame.Surface
+        The resolution of the screen
     """
 
     pygame.init()
-    screen = pygame.display.set_mode(render_class.resolution, pygame.RESIZABLE)
+    screen = pygame.display.set_mode(resolution, pygame.RESIZABLE)
     pygame.mouse.set_visible(False)
     pygame.event.set_grab(True)
     pygame.display.set_caption("3dEngine Pygame")

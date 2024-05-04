@@ -39,13 +39,16 @@ class Fluid:
     ----------
     particles : list
         A list of particles
-    bounds : np.array
-        An array of the bounds of the fluid
+    position : np.array
+        An array of the position of the origin of the fluid.
+    size : np.array
+        An array containing size in the x, y, and z directions
     """
 
-    def __init__(self, particles, bounds):
+    def __init__(self, particles, position, size):
         self.particles = particles
-        self.bounds = bounds
+        self.position = position
+        self.size = size
 
     def update(self, dt):
         """Updates the fluid by calculating each particle's acceleration and moving the particles according to their velocity
@@ -61,25 +64,25 @@ class Fluid:
         for i, particle in enumerate(self.particles):
             particle.position += particle.velocity
 
-            # Check for collisions with the bounds
+            # Check for collisions with the fluid body
 
-            if particle.position[0] < self.bounds[0]:
-                particle.position[0] = self.bounds[0]
+            if particle.position[0] < 0:
+                particle.position[0] = 0
                 particle.velocity[0] = - (particle.velocity[0] * 0.5)
-            elif particle.position[0] > self.bounds[3]:
-                particle.position[0] = self.bounds[3]
+            elif particle.position[0] > self.size[0]:
+                particle.position[0] = self.size[0]
                 particle.velocity[0] = - (particle.velocity[0] * 0.5)
-            if particle.position[1] < self.bounds[1]:
-                particle.position[1] = self.bounds[1]
+            if particle.position[1] < 0:
+                particle.position[1] = 0
                 particle.velocity[1] = - (particle.velocity[1] * 0.5)
-            elif particle.position[1] > self.bounds[4]:
-                particle.position[1] = self.bounds[4]
+            elif particle.position[1] > self.size[1]:
+                particle.position[1] = self.size[1]
                 particle.velocity[1] = - (particle.velocity[1] * 0.5)
-            if particle.position[2] < self.bounds[2]:
-                particle.position[2] = self.bounds[2]
+            if particle.position[2] < 0:
+                particle.position[2] = 0
                 particle.velocity[2] = - (particle.velocity[2] * 0.5)
-            elif particle.position[2] > self.bounds[5]:
-                particle.position[2] = self.bounds[5]
+            elif particle.position[2] > self.size[2]:
+                particle.position[2] = self.size[2]
                 particle.velocity[2] = - (particle.velocity[2] * 0.5)
 
     def applyParticleInteractions(self, dt):
@@ -167,15 +170,17 @@ class Particle:
         self.mass = mass
 
 
-def addFluid(nb_particles, bounds=[0, 0, 0, 10, 10, 10]):
+def addFluid(nb_particles, position=[0, 0, 0], size=[10, 10, 10]):
     """Adds a fluid to the simulation.
 
     Parameters
     ----------
     nb_particles : int
         The number of particles in the fluid
-    bounds : np.array
-        The bounds of the fluid
+    position : np.array
+        The origin of the fluid
+    size : np.array
+        The size of the fluid in x, y, and z coordinates
 
     Returns
     -------
@@ -185,15 +190,15 @@ def addFluid(nb_particles, bounds=[0, 0, 0, 10, 10, 10]):
 
     particles = []
     for i in range(nb_particles):
-        position = np.array([
-            np.random.rand() * (bounds[3] - bounds[0]) + bounds[0],
-            np.random.rand() * (bounds[4] - bounds[1]) + bounds[1],
-            np.random.rand() * (bounds[5] - bounds[2]) + bounds[2]
+        particle_position = np.array([
+            np.random.rand() * (size[0]),
+            np.random.rand() * (size[1]),
+            np.random.rand() * (size[2])
         ])
         velocity = np.zeros(3)
-        particles.append(Particle(position, velocity))
+        particles.append(Particle(particle_position, velocity))
 
-    fluid = Fluid(particles, bounds)
+    fluid = Fluid(particles, position, size)
 
     return fluid
 
