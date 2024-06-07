@@ -65,20 +65,25 @@ class Fluid:
 
         self.applyParticleInteractions()
 
+        # Gravity
         self.p_velocities -= np.array([0, 0.1, 0])
 
         pos_test = self.p_positions + self.p_velocities * dt
 
+        # Collision with the walls
         lower_bounds_collision = pos_test <= 0
         upper_bounds_collision = pos_test >= self.size
 
         self.p_velocities[lower_bounds_collision] *= -1 * (0.5)
-
         self.p_velocities[upper_bounds_collision] *= -1 * (0.5)
 
         pos_test = np.clip(pos_test, 0, self.size)
 
+        # Global damping
+        self.p_velocities *= 0.99
+
         self.p_positions = pos_test
+
 
 
 
@@ -93,14 +98,14 @@ class Fluid:
             The time step
         """
 
-        # Precalculate the vectors between the particles
+        # Calculate the vectors between the particles
         vectors = self.p_positions[:, np.newaxis, :] - self.p_positions[np.newaxis, :, :]
 
-        # Precalculate the distances between the particles into a single value
+        # Calculate the distances between the particles into a single value
         distances = np.linalg.norm(vectors, axis=2)
         distances[distances == 0] = 0.0001
 
-        interaction_forces = 1/(6+np.exp(10*distances-3))
+        interaction_forces = 1/(3+np.exp(10*distances-(1.5)))
 
         vectors /= distances[:, :, np.newaxis]
 
