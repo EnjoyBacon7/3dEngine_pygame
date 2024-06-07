@@ -74,10 +74,10 @@ def start(runtime_arguments, screen):
 
     print("Finished profiling")
 
-    graph_profile(profile_data)
+    graph_profile(profile_data, f"profile_graph_{formatted_time}.png")
 
 
-def graph_profile(profile_data):
+def graph_profile(profile_data, file_name):
     """Graphs the profiling data."""
 
     import matplotlib.pyplot as plt
@@ -95,6 +95,6 @@ def graph_profile(profile_data):
     for i in range(len(profile_data["update"])):
         average_times.append(np.average(profile_data["update"][i]) * 1000)
 
-    plt.savefig("./profiles/profile_graph.png")
+    plt.savefig(f"./profiles/{file_name}")
 
     plt.show()
