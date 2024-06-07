@@ -91,8 +91,8 @@ class Rendering:
         """
 
         for fluid in simulation.fluids:
-            for particle in fluid.particles:
-                point_2D = self.vec3tovec2(particle.position, camera_rotation_matrix)
+            for p_position in fluid.p_positions:
+                point_2D = self.vec3tovec2(p_position, camera_rotation_matrix)
                 color = self.consts["color_fluid"]
 
                 if point_2D == (-1, -1):

@@ -19,7 +19,7 @@ def start(runtime_arguments, screen):
         The pygame screen
     """
 
-    max_particles = 200
+    max_particles = 500
 
     # Initialise pygame and the simulation
     render_class = graphics.Rendering(screen, runtime_arguments)
@@ -38,7 +38,10 @@ def start(runtime_arguments, screen):
         dt = 0.00001
         count = 0
 
-        simulation_class.fluids[0].particles.pop()
+        # Remove a particle
+        simulation_class.fluids[0].p_positions = simulation_class.fluids[0].p_positions[:-1]
+        simulation_class.fluids[0].p_velocities = simulation_class.fluids[0].p_velocities[:-1]
+        simulation_class.fluids[0].p_masses = simulation_class.fluids[0].p_masses[:-1]
 
         while count < 100:
 

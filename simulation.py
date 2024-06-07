@@ -46,7 +46,11 @@ class Fluid:
     """
 
     def __init__(self, particles, position, size):
-        self.particles = particles
+
+        self.p_positions = np.array([particle.position for particle in particles])
+        self.p_velocities = np.array([particle.velocity for particle in particles])
+        self.p_masses = np.array([particle.mass for particle in particles])
+
         self.position = position
         self.size = size
 
@@ -59,33 +63,26 @@ class Fluid:
             The time step
         """
 
-        self.applyParticleInteractions(dt)
+        self.applyParticleInteractions()
 
-        for i, particle in enumerate(self.particles):
-            particle.position += particle.velocity
+        self.p_velocities -= np.array([0, 0.1, 0])
 
-            # Check for collisions with the fluid body
+        pos_test = self.p_positions + self.p_velocities * dt
 
-            if particle.position[0] < 0:
-                particle.position[0] = 0
-                particle.velocity[0] = - (particle.velocity[0] * 0.5)
-            elif particle.position[0] > self.size[0]:
-                particle.position[0] = self.size[0]
-                particle.velocity[0] = - (particle.velocity[0] * 0.5)
-            if particle.position[1] < 0:
-                particle.position[1] = 0
-                particle.velocity[1] = - (particle.velocity[1] * 0.5)
-            elif particle.position[1] > self.size[1]:
-                particle.position[1] = self.size[1]
-                particle.velocity[1] = - (particle.velocity[1] * 0.5)
-            if particle.position[2] < 0:
-                particle.position[2] = 0
-                particle.velocity[2] = - (particle.velocity[2] * 0.5)
-            elif particle.position[2] > self.size[2]:
-                particle.position[2] = self.size[2]
-                particle.velocity[2] = - (particle.velocity[2] * 0.5)
+        lower_bounds_collision = pos_test <= 0
+        upper_bounds_collision = pos_test >= self.size
 
-    def applyParticleInteractions(self, dt):
+        self.p_velocities[lower_bounds_collision] *= -1 * (0.5)
+
+        self.p_velocities[upper_bounds_collision] *= -1 * (0.5)
+
+        pos_test = np.clip(pos_test, 0, self.size)
+
+        self.p_positions = pos_test
+
+
+
+    def applyParticleInteractions(self):
         """Calculates and applies the accelerations of all particles
 
         Parameters
@@ -97,25 +94,21 @@ class Fluid:
         """
 
         # Precalculate the vectors between the particles
-        positions = np.array([particle.position for particle in self.particles], ndmin=2)
-        self.vectors = positions[:, np.newaxis, :] - positions[np.newaxis, :, :]
+        vectors = self.p_positions[:, np.newaxis, :] - self.p_positions[np.newaxis, :, :]
 
         # Precalculate the distances between the particles into a single value
-        self.distances = np.linalg.norm(self.vectors, axis=2)
-        self.distances[self.distances == 0] = 1
+        distances = np.linalg.norm(vectors, axis=2)
+        distances[distances == 0] = 0.0001
 
-        interaction_forces = 1/(self.distances *1000000)
+        interaction_forces = 1/(6+np.exp(10*distances-3))
 
-        self.vectors /= self.distances[:, :, np.newaxis]
+        vectors /= distances[:, :, np.newaxis]
 
-        multiplier = interaction_forces / np.array([particle.mass for particle in self.particles]) * dt
+        multiplier = interaction_forces / self.p_masses
 
-        accelerations = self.vectors * multiplier[:, :, np.newaxis]
+        accelerations = vectors * multiplier[:, :, np.newaxis]
 
-        for i, particle in enumerate(self.particles):
-            particle.velocity += np.sum(accelerations[i], axis=0)
-            particle.velocity[1] -= 0.00001
-
+        self.p_velocities += np.sum(accelerations, axis=1)
 
 class Particle:
     """A particle is a point in space with a velocity and a mass
