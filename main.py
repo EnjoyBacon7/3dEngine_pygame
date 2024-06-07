@@ -48,7 +48,7 @@ def init_sim():
     render_class = graphics.Rendering(screen, runtime_arguments)
 
     simulation_class = simulation.Simulation(gameObjects=[simulation.addGameObject("cube.obj")],
-                                             fluids=[simulation.addFluid(15, [-1, -1, 2], [2, 2, 2])])
+                                             fluids=[simulation.addFluid(500, [0, 0, 0], [3, 5, 3])])
 
     return render_class, simulation_class, runtime_arguments, screen
 
