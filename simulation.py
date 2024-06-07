@@ -96,59 +96,25 @@ class Fluid:
             The time step
         """
 
-        for i, currentParticle in enumerate(self.particles):
-            for otherParticle in self.particles[i+1:]:
-                interaction_acceleration = self.calculateParticleInteraction(
-                    currentParticle, otherParticle, dt)
-                currentParticle.velocity += interaction_acceleration
-                otherParticle.velocity -= interaction_acceleration
+        # Precalculate the vectors between the particles
+        positions = np.array([particle.position for particle in self.particles], ndmin=2)
+        self.vectors = positions[:, np.newaxis, :] - positions[np.newaxis, :, :]
 
-    def calculateParticleInteraction(self, particle1, particle2, dt):
-        """Calculates the acceleration between two particles
+        # Precalculate the distances between the particles into a single value
+        self.distances = np.linalg.norm(self.vectors, axis=2)
+        self.distances[self.distances == 0] = 1
 
-        Parameters
-        ----------
-        particle1 : Particle
-            The first particle
-        particle2 : Particle
-            The second particle
-        dt : float
-            The time step
+        interaction_forces = 1/(self.distances *1000000)
 
-        Returns
-        -------
-        acceleration : np.array
-            The acceleration between the two particles
-        """
+        self.vectors /= self.distances[:, :, np.newaxis]
 
-        acceleration = np.zeros(3)
+        multiplier = interaction_forces / np.array([particle.mass for particle in self.particles]) * dt
 
-        if particle1.position[0] == particle2.position[0] and particle1.position[1] == particle2.position[1] and particle1.position[2] == particle2.position[2]:
-            print("Particles are in the same position")
-            particle1.position[0] += np.random.rand() * 0.01
-            particle1.position[1] += np.random.rand() * 0.01
-            particle1.position[2] += np.random.rand() * 0.01
+        accelerations = self.vectors * multiplier[:, :, np.newaxis]
 
-        # Calculate the vector between the two particles
-        vector = particle1.position - particle2.position
-
-        # Calculate the distance between the two particles
-        distance = abs(vector[0]) + abs(vector[1]) + abs(vector[2])
-
-        # Calculate the force between the two particles
-        force = (0.05/(2*distance)) - (0.025)
-        if force < 0:
-            return acceleration
-        if force > 0.5:
-            force = 0.5
-
-        vector /= distance
-
-        # Calculate the acceleration /// ONLY WORKS FOR PARTICLES OF EQUAL MASS
-        multiplier = force / particle1.mass * dt
-        acceleration = vector * multiplier
-
-        return acceleration
+        for i, particle in enumerate(self.particles):
+            particle.velocity += np.sum(accelerations[i], axis=0)
+            particle.velocity[1] -= 0.00001
 
 
 class Particle:
