@@ -108,10 +108,10 @@ def initPygame(resolution):
 
 if __name__ == "__main__":
 
-    #main()
+    main()
 
 
-    cProfile.run('main()', 'profile.out')
+    # cProfile.run('main()', 'profile.out')
 
-    p = pstats.Stats('profile.out')
-    p.sort_stats('cumulative').print_stats(30)
+    # p = pstats.Stats('profile.out')
+    # p.sort_stats('cumulative').print_stats(30)
