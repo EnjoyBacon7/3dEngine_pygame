@@ -39,13 +39,21 @@ class Fluid:
     ----------
     particles : list
         A list of particles
-    bounds : np.array
-        An array of the bounds of the fluid
+    position : np.array
+        An array of the position of the origin of the fluid.
+    size : np.array
+        An array containing size in the x, y, and z directions
     """
 
-    def __init__(self, particles, bounds):
-        self.particles = particles
-        self.bounds = bounds
+    def __init__(self, particles, position, size, bounds_object):
+
+        self.p_positions = np.array([particle.position for particle in particles])
+        self.p_velocities = np.array([particle.velocity for particle in particles])
+        self.p_masses = np.array([particle.mass for particle in particles])
+
+        self.bounds_object = bounds_object
+        self.position = np.array(position)
+        self.size = np.array(size)
 
     def update(self, dt):
         """Updates the fluid by calculating each particle's acceleration and moving the particles according to their velocity
@@ -56,33 +64,43 @@ class Fluid:
             The time step
         """
 
-        self.applyParticleInteractions(dt)
+        self.applyParticleInteractions()
 
-        for i, particle in enumerate(self.particles):
-            particle.position += particle.velocity
+        # Gravity
+        self.p_velocities -= np.array([0, 0.1, 0])
 
-            # Check for collisions with the bounds
+        # Simulating a fountain
+        # find the particles that are in the center of the fluid (a cylinder in the middle of the fluid)
+        # Calculate the center of the fluid
+        center = self.size / 2
+        # Calculate the distances of the particles from the center, ignoring the height
+        distances = np.linalg.norm(self.p_positions[:, [0, 2]] - center[[0, 2]], axis=1)
+        # Define the radius of the cylinder
+        radius = min(self.size[[0, 2]]) / 5
+        # Find the particles that are in the center of the fluid
+        center_particles = np.where(distances < radius)
+        self.p_velocities[center_particles] += np.array([0, 0.2, 0])
 
-            if particle.position[0] < self.bounds[0]:
-                particle.position[0] = self.bounds[0]
-                particle.velocity[0] = - (particle.velocity[0] * 0.5)
-            elif particle.position[0] > self.bounds[3]:
-                particle.position[0] = self.bounds[3]
-                particle.velocity[0] = - (particle.velocity[0] * 0.5)
-            if particle.position[1] < self.bounds[1]:
-                particle.position[1] = self.bounds[1]
-                particle.velocity[1] = - (particle.velocity[1] * 0.5)
-            elif particle.position[1] > self.bounds[4]:
-                particle.position[1] = self.bounds[4]
-                particle.velocity[1] = - (particle.velocity[1] * 0.5)
-            if particle.position[2] < self.bounds[2]:
-                particle.position[2] = self.bounds[2]
-                particle.velocity[2] = - (particle.velocity[2] * 0.5)
-            elif particle.position[2] > self.bounds[5]:
-                particle.position[2] = self.bounds[5]
-                particle.velocity[2] = - (particle.velocity[2] * 0.5)
 
-    def applyParticleInteractions(self, dt):
+
+
+        pos_test = self.p_positions + self.p_velocities * dt
+
+        # Collision with the walls
+        lower_bounds_collision = pos_test <= 0
+        upper_bounds_collision = pos_test >= self.size
+
+        self.p_velocities[lower_bounds_collision] *= -1 * (0.5)
+        self.p_velocities[upper_bounds_collision] *= -1 * (0.5)
+
+        pos_test = np.clip(pos_test, 0, self.size)
+
+        # Global damping
+        self.p_velocities *= 0.99
+
+        self.p_positions = pos_test
+
+    def applyParticleInteractions(self):
         """Calculates and applies the accelerations of all particles
 
         Parameters
@@ -93,59 +111,23 @@ class Fluid:
             The time step
         """
 
-        for i, currentParticle in enumerate(self.particles):
-            for otherParticle in self.particles[i+1:]:
-                interaction_acceleration = self.calculateParticleInteraction(
-                    currentParticle, otherParticle, dt)
-                currentParticle.velocity += interaction_acceleration
-                otherParticle.velocity -= interaction_acceleration
+        # Calculate the vectors between the particles
 
-    def calculateParticleInteraction(self, particle1, particle2, dt):
-        """Calculates the acceleration between two particles
+        vectors = self.p_positions[:, np.newaxis, :] - self.p_positions[np.newaxis, :, :]
 
-        Parameters
-        ----------
-        particle1 : Particle
-            The first particle
-        particle2 : Particle
-            The second particle
-        dt : float
-            The time step
+        # Calculate the distances between the particles into a single value
+        distances = np.linalg.norm(vectors, axis=2)
+        distances[distances == 0] = 0.0001
 
-        Returns
-        -------
-        acceleration : np.array
-            The acceleration between the two particles
-        """
+        interaction_forces = 1/(3+np.exp(10*distances-(1.5)))
 
-        acceleration = np.zeros(3)
+        vectors /= distances[:, :, np.newaxis]
 
-        if particle1.position[0] == particle2.position[0] and particle1.position[1] == particle2.position[1] and particle1.position[2] == particle2.position[2]:
-            print("Particles are in the same position")
-            particle1.position[0] += np.random.rand() * 0.01
-            particle1.position[1] += np.random.rand() * 0.01
-            particle1.position[2] += np.random.rand() * 0.01
+        multiplier = interaction_forces / self.p_masses
 
-        # Calculate the vector between the two particles
-        vector = particle1.position - particle2.position
+        accelerations = vectors * multiplier[:, :, np.newaxis]
 
-        # Calculate the distance between the two particles
-        distance = abs(vector[0]) + abs(vector[1]) + abs(vector[2])
-
-        # Calculate the force between the two particles
-        force = (0.05/(2*distance)) - (0.025)
-        if force < 0:
-            return acceleration
-        if force > 0.5:
-            force = 0.5
-
-        vector /= distance
-
-        # Calculate the acceleration /// ONLY WORKS FOR PARTICLES OF EQUAL MASS
-        multiplier = force / particle1.mass * dt
-        acceleration = vector * multiplier
-
-        return acceleration
+        self.p_velocities += np.sum(accelerations, axis=1)
 
 
 class Particle:
@@ -167,15 +149,17 @@ class Particle:
         self.mass = mass
 
 
-def addFluid(nb_particles, bounds=[0, 0, 0, 10, 10, 10]):
+def addFluid(nb_particles, position=[0, 0, 0], size=[10, 10, 10]):
     """Adds a fluid to the simulation.
 
     Parameters
     ----------
     nb_particles : int
         The number of particles in the fluid
-    bounds : np.array
-        The bounds of the fluid
+    position : np.array
+        The origin of the fluid
+    size : np.array
+        The size of the fluid in x, y, and z coordinates
 
     Returns
     -------
@@ -185,15 +169,32 @@ def addFluid(nb_particles, bounds=[0, 0, 0, 10, 10, 10]):
 
     particles = []
     for i in range(nb_particles):
-        position = np.array([
-            np.random.rand() * (bounds[3] - bounds[0]) + bounds[0],
-            np.random.rand() * (bounds[4] - bounds[1]) + bounds[1],
-            np.random.rand() * (bounds[5] - bounds[2]) + bounds[2]
+        particle_position = np.array([
+            np.random.rand() * (size[0]),
+            np.random.rand() * (size[1]),
+            np.random.rand() * (size[2])
         ])
         velocity = np.zeros(3)
-        particles.append(Particle(position, velocity))
+        particles.append(Particle(particle_position, velocity))
 
-    fluid = Fluid(particles, bounds)
+    bounds_object = GameObject(np.array([
+        [0, 0, 0],
+        [0, 0, size[2]],
+        [0, size[1], 0],
+        [0, size[1], size[2]],
+        [size[0], 0, 0],
+        [size[0], 0, size[2]],
+        [size[0], size[1], 0],
+        [size[0], size[1], size[2]]
+    ]), np.array([
+    
+        
+        # No faces for now
+
+
+    ]))
+
+    fluid=Fluid(particles, position, size, bounds_object)
 
     return fluid
 
@@ -212,29 +213,29 @@ def addGameObject(fileName):
         The game object
     """
 
-    objectFile = open("obj_files/" + fileName, "r")
+    objectFile=open("obj_files/" + fileName, "r")
 
-    lines = objectFile.readlines()
-    pointLines = list(filter(lambda x: x[0] == "v" and x[1] == " ", lines))
+    lines=objectFile.readlines()
+    pointLines=list(filter(lambda x: x[0] == "v" and x[1] == " ", lines))
     for i in range(len(pointLines)):
-        pointLines[i] = pointLines[i][2:-2].split(" ")
+        pointLines[i]=pointLines[i][2:-2].split(" ")
         for j in range(len(pointLines[i])):
-            pointLines[i][j] = float(pointLines[i][j])
-    points = np.array(pointLines)
+            pointLines[i][j]=float(pointLines[i][j])
+    points=np.array(pointLines)
 
-    faceLines = list(filter(lambda x: x[0] == "f" and x[1] == " ", lines))
+    faceLines=list(filter(lambda x: x[0] == "f" and x[1] == " ", lines))
     for i in range(len(faceLines)):
-        faceLines[i] = faceLines[i][2:-2].split(" ")
-        facePoints = [
+        faceLines[i]=faceLines[i][2:-2].split(" ")
+        facePoints=[
             int(faceLines[i][0].split("/")[0]),
             int(faceLines[i][1].split("/")[0]),
             int(faceLines[i][2].split("/")[0]),
         ]
-        faceLines[i] = facePoints
+        faceLines[i]=facePoints
 
-    faces = np.array(faceLines)
+    faces=np.array(faceLines)
 
-    object = GameObject(points, faces)
+    object=GameObject(points, faces)
 
     objectFile.close()
 

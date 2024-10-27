@@ -5,6 +5,7 @@ import numpy as np
 import inputHandling as inputHandling
 import json
 import math
+import os
 
 # ----------------------------------------
 # Initialise the simulation
@@ -16,14 +17,20 @@ class Rendering:
 
     Parameters
     ----------
+    screen : Pygame.Surface
+        The screen on which this Rendering class should render
     args : Namespace
         The arguments passed to the program
     """
+    # Print all files in the obj_files directory
+    print(os.listdir("./"))
 
     with open("./graphics_engine/render_consts.json") as f:
         consts = json.load(f)
 
-    def __init__(self, args: object):
+    def __init__(self, screen, args: object):
+        self.screen = screen
+
         self.resolution = args.resolution
         self.render_mode = args.render_mode
         self.show_overlay = args.overlay
@@ -34,85 +41,87 @@ class Rendering:
             "rotation": np.array([0, 0, 0], dtype=float),
             "fov": 90,
             "farClip": 100,
-            "nearClip": 0.1,
+            "nearClip": 0.01,
         }
 
-        self.projection_matrix = self.getProjectionMatrix(self.camera, self.resolution)
+        self.projection_matrix = self.getProjectionMatrix()
 
-    def draw(self, screen, simulation):
+    def draw(self, simulation):
         """Draws the simulation, overlay, and grid on the screen using the provided simulation class
 
         Parameters
         ----------
-        screen : pygame.Surface
-            The surface to draw on
         simulation : Simulation
             The simulation to draw
         """
 
         # Clear the screen
-        screen.fill(self.consts["color_bg"])
+        self.screen.fill(self.consts["color_bg"])
 
         # Draw the points
-        self.drawWorld(simulation, screen)
+        self.drawWorld(simulation)
         # Draw the overlay
         if (self.show_overlay):
-            self.drawOverlay(screen)
+            self.drawOverlay()
 
         # Apply changes to screen
         pygame.display.flip()
 
-    def drawWorld(self, simulation, screen):
+    def drawWorld(self, simulation):
         """Draws the world on the screen using the provided simulation class
 
         Parameters
         ----------
         simulation : Simulation
             The simulation to draw
-        screen : pygame.Surface
-            The surface to draw on
         """
 
         # Math out this frame's camera rotation matrix
-        camera_rotation_matrix = self.getCameraRotationMatrix(self.camera["rotation"])
+        camera_rotation_matrix = self.getCameraRotationMatrix()
 
-        # renderFluids(simulation, screen, camera_rotation_matrix)
-        self.renderGameObjects(simulation, screen, camera_rotation_matrix)
-        self.renderFluids(simulation, screen, camera_rotation_matrix)
+        self.renderGameObjects(simulation, camera_rotation_matrix)
+        self.renderFluids(simulation, camera_rotation_matrix)
 
-    def renderFluids(self, simulation, screen, camera_rotation_matrix):
+    def renderFluids(self, simulation, camera_rotation_matrix):
         """Renders the fluids on the screen using the provided simulation class
 
         Parameters
         ----------
         simulation : Simulation
             The simulation to draw
-        screen : pygame.Surface
-            The surface to draw on
         camera_rotation_matrix : numpy.ndarray
             The rotation matrix of the camera
         """
 
         for fluid in simulation.fluids:
-            for particle in fluid.particles:
-                point_2D = self.vec3tovec2(particle.position, camera_rotation_matrix)
+            for p_position in fluid.p_positions:
+                point_2D = self.vec3tovec2(p_position, camera_rotation_matrix)
                 color = self.consts["color_fluid"]
 
                 if point_2D == (-1, -1):
                     continue
 
                 # Draw the point
-                pygame.draw.circle(screen, color, point_2D, 3)
+                pygame.draw.circle(self.screen, color, point_2D, 3)
+        
+        for fluid in simulation.fluids:
+            # Draw the bounding box
+            if (self.render_mode == "points"):
+                self.draw_object_as_points(fluid.bounds_object, camera_rotation_matrix)
+            elif (self.render_mode == "wireframe"):
+                self.draw_object_as_wires(fluid.bounds_object, camera_rotation_matrix)
+            elif (self.render_mode == "solid"):
+                self.draw_object_as_solids(fluid.bounds_object, camera_rotation_matrix)
 
-    def renderGameObjects(self, simulation, screen, camera_rotation_matrix):
+            
+
+    def renderGameObjects(self, simulation, camera_rotation_matrix):
         """Renders the gameObjects on the screen using the provided simulation class
 
         Parameters
         ----------
         simulation : Simulation
             The simulation to draw
-        screen : pygame.Surface
-            The surface to draw on
         camera_rotation_matrix : numpy.ndarray
             The rotation matrix of the camera
         """
@@ -120,45 +129,68 @@ class Rendering:
         # Math out the 3d points on the canvas (1 unit away from the camera)
 
         if (self.render_mode == "points"):
-            self.draw_as_points(simulation, screen, camera_rotation_matrix)
+            self.draw_as_points(simulation, camera_rotation_matrix)
         elif (self.render_mode == "wireframe"):
-            self.draw_as_wires(simulation, screen, camera_rotation_matrix)
+            self.draw_as_wires(simulation, camera_rotation_matrix)
         elif (self.render_mode == "solid"):
-            self.draw_as_solids(simulation, screen, camera_rotation_matrix)
+            self.draw_as_solids(simulation, camera_rotation_matrix)
 
-    def draw_as_points(self, simulation, screen, camera_rotation_matrix):
+    def draw_as_points(self, simulation, camera_rotation_matrix):
         """Draws the simulation as points on the screen using the provided simulation class
 
         Parameters
         ----------
         simulation : Simulation
             The simulation to draw
-        screen : pygame.Surface
-            The surface to draw on
         camera_rotation_matrix : numpy.ndarray
             The rotation matrix of the camera
         """
 
         for object in simulation.gameObjects:
-            for point in object.points:
-                point_2D = self.vec3tovec2(point, camera_rotation_matrix)
-                color = self.getColor(point)
+            self.draw_object_as_points(object, camera_rotation_matrix)
 
-                if point_2D == (-1, -1):
-                    continue
+    def draw_object_as_points(self, object, camera_rotation_matrix):
+        """Draws the object as points on the screen using the provided object and camera rotation matrix
 
-                # Draw the point
-                pygame.draw.circle(screen, color, point_2D, 3)
+        Parameters
+        ----------
+        object : GameObject
+            The object to draw
+        camera_rotation_matrix : numpy.ndarray
+            The rotation matrix of the camera
+        """
 
-    def draw_as_solids(self, simulation, screen, camera_rotation_matrix):
+        for point in object.points:
+            point_2D = self.vec3tovec2(point, camera_rotation_matrix)
+            color = self.getColor(point)
+
+            if point_2D == (-1, -1):
+                continue
+
+            # Draw the point
+            pygame.draw.circle(self.screen, color, point_2D, 3)
+
+    def draw_as_solids(self, simulation, camera_rotation_matrix):
         """Draws the simulation as solids on the screen using the provided simulation class
 
         Parameters
         ----------
         simulation : Simulation
             The simulation to draw
-        screen : pygame.Surface 
-            The surface to draw on
+        camera_rotation_matrix : numpy.ndarray
+            The rotation matrix of the camera
+        """
+
+        for object in simulation.gameObjects:
+            self.draw_object_as_solids(object, camera_rotation_matrix)
+
+    def draw_object_as_solids(self, object, camera_rotation_matrix):
+        """Draws the simulation as solids on the screen using the provided simulation class
+
+        Parameters
+        ----------
+        simulation : Simulation
+            The simulation to draw
         camera_rotation_matrix : numpy.ndarray
             The rotation matrix of the camera
         """
@@ -178,79 +210,90 @@ class Rendering:
             (255, 0, 255),
             (255, 0, 127)
         ]
-        for object in simulation.gameObjects:
 
-            pre_baked_points = []
-            pre_baked_colors = []
+        pre_baked_points = []
+        pre_baked_colors = []
 
-            for point in object.points:
-                pre_baked_points.append(self.vec3tovec2(point, camera_rotation_matrix))
-                # pre_baked_colors.append(self.getColor(point))
+        for point in object.points:
+            pre_baked_points.append(self.vec3tovec2(point, camera_rotation_matrix))
+            # pre_baked_colors.append(self.getColor(point))
 
-            for i, face in enumerate(object.faces):
+        for i, face in enumerate(object.faces):
 
-                # Project the face's points
-                face_2D = [
-                    pre_baked_points[face[0] - 1],
-                    pre_baked_points[face[1] - 1],
-                    pre_baked_points[face[2] - 1],
-                ]
-                color = colors[i % 12]
+            # Project the face's points
+            face_2D = [
+                pre_baked_points[face[0] - 1],
+                pre_baked_points[face[1] - 1],
+                pre_baked_points[face[2] - 1],
+            ]
+            color = colors[i % 12]
 
-                # If one of the points is behind the camera, don't render the face
-                if face_2D[0] == (-1, -1) or face_2D[1] == (-1, -1) or face_2D[2] == (-1, -1):
-                    continue
+            # If one of the points is behind the camera, don't render the face
+            if face_2D[0] == (-1, -1) or face_2D[1] == (-1, -1) or face_2D[2] == (-1, -1):
+                continue
 
-                # If the winding order is CCW, don't render the face
-                abX = face_2D[1][0] - face_2D[0][0]
-                abY = face_2D[1][1] - face_2D[0][1]
-                acX = face_2D[2][0] - face_2D[0][0]
-                acY = face_2D[2][1] - face_2D[0][1]
+            # If the winding order is CCW, don't render the face
+            abX = face_2D[1][0] - face_2D[0][0]
+            abY = face_2D[1][1] - face_2D[0][1]
+            acX = face_2D[2][0] - face_2D[0][0]
+            acY = face_2D[2][1] - face_2D[0][1]
 
-                if (abX * acY - abY * acX) < 0:
-                    continue
+            if (abX * acY - abY * acX) < 0:
+                continue
 
-                # Color gradient not implemented
-                pygame.draw.polygon(screen, color, face_2D)
+            # Color gradient not implemented
+            pygame.draw.polygon(self.screen, color, face_2D)
 
-    def draw_as_wires(self, simulation, screen, camera_rotation_matrix):
+    def draw_as_wires(self, simulation, camera_rotation_matrix):
         """Draws the simulation as wireframes on the screen using the provided simulation class
 
         Parameters
         ----------
         simulation : Simulation
             The simulation to draw
-        screen : pygame.Surface
-            The surface to draw on
         camera_rotation_matrix : numpy.ndarray 
             The rotation matrix of the camera
         """
 
         for object in simulation.gameObjects:
-            pre_baked_points = []
-            pre_baked_colors = []
-            for point in object.points:
-                pre_baked_points.append(self.vec3tovec2(point, camera_rotation_matrix))
-                pre_baked_colors.append(self.getColor(point))
+            self.draw_object_as_wires(object, camera_rotation_matrix)
 
-            for face in object.faces:
+    def draw_object_as_wires(self, object, camera_rotation_matrix):
+        """
+        Draws the object as wireframes on the screen using the provided object and camera rotation matrix
 
-                if pre_baked_points[face[0] - 1] == (-1, -1) or pre_baked_points[face[1] - 1] == (-1, -1) or pre_baked_points[face[2] - 1] == (-1, -1):
-                    continue
+        Parameters
+        ----------
+        object : GameObject
+            The object to draw
+        camera_rotation_matrix : numpy.ndarray
+        """
 
-                face_2D = [
-                    pre_baked_points[face[0] - 1],
-                    pre_baked_points[face[1] - 1],
-                    pre_baked_points[face[2] - 1]]
-                colors = [
-                    pre_baked_colors[face[0] - 1],
-                    pre_baked_colors[face[1] - 1],
-                    pre_baked_colors[face[2] - 1]
-                ]
+        pre_baked_points = []
+        pre_baked_colors = []
+        for point in object.points:
+            pre_baked_points.append(self.vec3tovec2(point, camera_rotation_matrix))
+            pre_baked_colors.append(self.getColor(point))
 
-                pygame.draw.line(screen, colors[0], face_2D[0], face_2D[1], 1)
-                pygame.draw.line(screen, colors[1], face_2D[1], face_2D[2], 1)
-                pygame.draw.line(screen, colors[2], face_2D[2], face_2D[0], 1)
+        for face in object.faces:
+
+            if pre_baked_points[face[0] - 1] == (-1, -1) or pre_baked_points[face[1] - 1] == (-1, -1) or pre_baked_points[face[2] - 1] == (-1, -1):
+                continue
+
+            face_2D = [
+                pre_baked_points[face[0] - 1],
+                pre_baked_points[face[1] - 1],
+                pre_baked_points[face[2] - 1]]
+            colors = [
+                pre_baked_colors[face[0] - 1],
+                pre_baked_colors[face[1] - 1],
+                pre_baked_colors[face[2] - 1]
+            ]
+
+            pygame.draw.line(self.screen, colors[0], face_2D[0], face_2D[1], 1)
+            pygame.draw.line(self.screen, colors[1], face_2D[1], face_2D[2], 1)
+            pygame.draw.line(self.screen, colors[2], face_2D[2], face_2D[0], 1)
+
 
     # Main projection function: From world space to screen space
     def vec3tovec2(self, point, camera_rotation_matrix):
@@ -307,13 +350,8 @@ class Rendering:
 
         return (screen_x, screen_y)
 
-    def drawOverlay(self, screen):
+    def drawOverlay(self):
         """Draws the overlay on the screen
-
-        Parameters
-        ----------
-        screen : pygame.Surface
-            The surface to draw on
         """
 
         font = pygame.font.SysFont("Roboto", 30)
@@ -331,10 +369,12 @@ class Rendering:
         # Overlay content
         text = []
 
+        # Camera Position
         text.append(
             font.render(
                 "Camera: " + str([round(num, 2) for num in self.camera["position"]]),
                 True, self.consts["color_overlay_txt"]))
+        # Camera Rotation
         text.append(font.render("Camera rotation: " + str([round(np.degrees(num), 2)
                     for num in self.camera["rotation"]]), True, self.consts["color_overlay_txt"]))
         # FOV
@@ -346,16 +386,14 @@ class Rendering:
                 centery=((i+1)*overlay_h/(len(text)+1)), left=10)
             hud.blit(text[i], rect)
 
-        screen.blit(hud, (self.consts["overlay_pos"][0]/100 * self.resolution
+        self.screen.blit(hud, (self.consts["overlay_pos"][0]/100 * self.resolution
                           [0], self.consts["overlay_pos"][1]/100 * self.resolution[1]))
 
-    def drawGrid(self, screen, camera_rotation_matrix):
+    def drawGrid(self, camera_rotation_matrix):
         """Draws the grid on the screen
 
         Parameters
         ----------
-        screen : pygame.Surface
-            The surface to draw on
         camera_rotation_matrix : numpy.ndarray
             The rotation matrix of the camera
         """
@@ -370,7 +408,7 @@ class Rendering:
             coords_s = self.vec3tovec2(point_s, camera_rotation_matrix)
             coords_e = self.vec3tovec2(point_e, camera_rotation_matrix)
             color = (255, 255, 255)
-            pygame.draw.line(screen, color, coords_s, coords_e, 1)
+            pygame.draw.line(self.screen, color, coords_s, coords_e, 1)
 
         for i in range(z_limits[0], z_limits[1] + 1):
             point_s = [i, 0, z_limits[0]]
@@ -378,7 +416,7 @@ class Rendering:
             coords_s = self.vec3tovec2(point_s, camera_rotation_matrix)
             coords_e = self.vec3tovec2(point_e, camera_rotation_matrix)
             color = (255, 255, 255)
-            pygame.draw.line(screen, color, coords_s, coords_e, 1)
+            pygame.draw.line(self.screen, color, coords_s, coords_e, 1)
 
     def updateVarsOnResize(self):
         """Updates the variables when the window is resized
@@ -389,15 +427,8 @@ class Rendering:
 
     # Returns the projection matrix from current simVars (mostly run when window is resized and on init)
 
-    def getProjectionMatrix(self, camera, resolution):
+    def getProjectionMatrix(self):
         """Returns the projection matrix from current simVars (mostly run when window is resized and on init)
-
-        Parameters
-        ----------
-        camera : dict
-            The camera to get the projection matrix from
-        resolution : tuple
-            The resolution of the window
 
         Returns
         -------
@@ -406,10 +437,10 @@ class Rendering:
         """
 
         # Create projection matrix
-        nearClip = camera["nearClip"]
-        farClip = camera["farClip"]
-        fov = camera["fov"]
-        aspect_ratio = resolution[0] / resolution[1]
+        nearClip = self.camera["nearClip"]
+        farClip = self.camera["farClip"]
+        fov = self.camera["fov"]
+        aspect_ratio = self.resolution[0] / self.resolution[1]
 
         projection_matrix = np.array([
             [1/(aspect_ratio * math.tan(math.radians(fov)/2)), 0, 0, 0],
@@ -454,13 +485,8 @@ class Rendering:
 
     # Returns the rotation matrix from the camera's orientation
 
-    def getCameraRotationMatrix(self, camera_orientation):
+    def getCameraRotationMatrix(self):
         """Returns the rotation matrix from the camera's orientation
-
-        Parameters
-        ----------
-        camera_orientation : numpy.ndarray
-            The orientation of the camera
 
         Returns
         -------
@@ -468,12 +494,12 @@ class Rendering:
             The rotation matrix
         """
 
-        cos_x = math.cos(camera_orientation[0])
-        sin_x = math.sin(camera_orientation[0])
-        cos_y = math.cos(camera_orientation[1])
-        sin_y = math.sin(camera_orientation[1])
-        cos_z = math.cos(camera_orientation[2])
-        sin_z = math.sin(camera_orientation[2])
+        cos_x = math.cos(self.camera["rotation"][0])
+        sin_x = math.sin(self.camera["rotation"][0])
+        cos_y = math.cos(self.camera["rotation"][1])
+        sin_y = math.sin(self.camera["rotation"][1])
+        cos_z = math.cos(self.camera["rotation"][2])
+        sin_z = math.sin(self.camera["rotation"][2])
 
         Rot_x = np.array([
             [1, 0, 0],

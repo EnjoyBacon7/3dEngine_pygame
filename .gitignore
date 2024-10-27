@@ -156,3 +156,5 @@ obj_files
 graphs
 .VSCodeCounter
 profile.out
+profiles
+.python-version
