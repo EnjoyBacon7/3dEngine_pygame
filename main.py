@@ -47,8 +47,8 @@ def init_sim():
     # Initialise the render engine and the simulation
     render_class = graphics.Rendering(screen, runtime_arguments)
 
-    simulation_class = simulation.Simulation(gameObjects=[simulation.addGameObject("cube.obj")],
-                                             fluids=[simulation.addFluid(500, [0, 0, 0], [3, 5, 3])])
+    simulation_class = simulation.Simulation(gameObjects=[],
+                                             fluids=[simulation.addFluid(800, [0, 0, 0], [5, 10, 5])])
 
     return render_class, simulation_class, runtime_arguments, screen
 
@@ -108,9 +108,10 @@ def initPygame(resolution):
 
 if __name__ == "__main__":
 
-    main()
+    #main()
 
-    # cProfile.run('main()', 'profile.out')
 
-    # p = pstats.Stats('profile.out')
-    # p.sort_stats('cumulative').print_stats(30)
+    cProfile.run('main()', 'profile.out')
+
+    p = pstats.Stats('profile.out')
+    p.sort_stats('cumulative').print_stats(30)

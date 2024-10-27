@@ -5,6 +5,7 @@ import numpy as np
 import inputHandling as inputHandling
 import json
 import math
+import os
 
 # ----------------------------------------
 # Initialise the simulation
@@ -21,6 +22,8 @@ class Rendering:
     args : Namespace
         The arguments passed to the program
     """
+    # Print all files in the obj_files directory
+    print(os.listdir("./"))
 
     with open("./graphics_engine/render_consts.json") as f:
         consts = json.load(f)
@@ -100,6 +103,17 @@ class Rendering:
 
                 # Draw the point
                 pygame.draw.circle(self.screen, color, point_2D, 3)
+        
+        for fluid in simulation.fluids:
+            # Draw the bounding box
+            if (self.render_mode == "points"):
+                self.draw_object_as_points(fluid.bounds_object, camera_rotation_matrix)
+            elif (self.render_mode == "wireframe"):
+                self.draw_object_as_wires(fluid.bounds_object, camera_rotation_matrix)
+            elif (self.render_mode == "solid"):
+                self.draw_object_as_solids(fluid.bounds_object, camera_rotation_matrix)
+
+            
 
     def renderGameObjects(self, simulation, camera_rotation_matrix):
         """Renders the gameObjects on the screen using the provided simulation class
@@ -133,17 +147,44 @@ class Rendering:
         """
 
         for object in simulation.gameObjects:
-            for point in object.points:
-                point_2D = self.vec3tovec2(point, camera_rotation_matrix)
-                color = self.getColor(point)
+            self.draw_object_as_points(object, camera_rotation_matrix)
 
-                if point_2D == (-1, -1):
-                    continue
+    def draw_object_as_points(self, object, camera_rotation_matrix):
+        """Draws the object as points on the screen using the provided object and camera rotation matrix
 
-                # Draw the point
-                pygame.draw.circle(self.screen, color, point_2D, 3)
+        Parameters
+        ----------
+        object : GameObject
+            The object to draw
+        camera_rotation_matrix : numpy.ndarray
+            The rotation matrix of the camera
+        """
+
+        for point in object.points:
+            point_2D = self.vec3tovec2(point, camera_rotation_matrix)
+            color = self.getColor(point)
+
+            if point_2D == (-1, -1):
+                continue
+
+            # Draw the point
+            pygame.draw.circle(self.screen, color, point_2D, 3)
 
     def draw_as_solids(self, simulation, camera_rotation_matrix):
+        """Draws the simulation as solids on the screen using the provided simulation class
+
+        Parameters
+        ----------
+        simulation : Simulation
+            The simulation to draw
+        camera_rotation_matrix : numpy.ndarray
+            The rotation matrix of the camera
+        """
+
+        for object in simulation.gameObjects:
+            self.draw_object_as_solids(object, camera_rotation_matrix)
+
+    def draw_object_as_solids(self, object, camera_rotation_matrix):
         """Draws the simulation as solids on the screen using the provided simulation class
 
         Parameters
@@ -169,40 +210,39 @@ class Rendering:
             (255, 0, 255),
             (255, 0, 127)
         ]
-        for object in simulation.gameObjects:
 
-            pre_baked_points = []
-            pre_baked_colors = []
+        pre_baked_points = []
+        pre_baked_colors = []
 
-            for point in object.points:
-                pre_baked_points.append(self.vec3tovec2(point, camera_rotation_matrix))
-                # pre_baked_colors.append(self.getColor(point))
+        for point in object.points:
+            pre_baked_points.append(self.vec3tovec2(point, camera_rotation_matrix))
+            # pre_baked_colors.append(self.getColor(point))
 
-            for i, face in enumerate(object.faces):
+        for i, face in enumerate(object.faces):
 
-                # Project the face's points
-                face_2D = [
-                    pre_baked_points[face[0] - 1],
-                    pre_baked_points[face[1] - 1],
-                    pre_baked_points[face[2] - 1],
-                ]
-                color = colors[i % 12]
+            # Project the face's points
+            face_2D = [
+                pre_baked_points[face[0] - 1],
+                pre_baked_points[face[1] - 1],
+                pre_baked_points[face[2] - 1],
+            ]
+            color = colors[i % 12]
 
-                # If one of the points is behind the camera, don't render the face
-                if face_2D[0] == (-1, -1) or face_2D[1] == (-1, -1) or face_2D[2] == (-1, -1):
-                    continue
+            # If one of the points is behind the camera, don't render the face
+            if face_2D[0] == (-1, -1) or face_2D[1] == (-1, -1) or face_2D[2] == (-1, -1):
+                continue
 
-                # If the winding order is CCW, don't render the face
-                abX = face_2D[1][0] - face_2D[0][0]
-                abY = face_2D[1][1] - face_2D[0][1]
-                acX = face_2D[2][0] - face_2D[0][0]
-                acY = face_2D[2][1] - face_2D[0][1]
+            # If the winding order is CCW, don't render the face
+            abX = face_2D[1][0] - face_2D[0][0]
+            abY = face_2D[1][1] - face_2D[0][1]
+            acX = face_2D[2][0] - face_2D[0][0]
+            acY = face_2D[2][1] - face_2D[0][1]
 
-                if (abX * acY - abY * acX) < 0:
-                    continue
+            if (abX * acY - abY * acX) < 0:
+                continue
 
-                # Color gradient not implemented
-                pygame.draw.polygon(self.screen, color, face_2D)
+            # Color gradient not implemented
+            pygame.draw.polygon(self.screen, color, face_2D)
 
     def draw_as_wires(self, simulation, camera_rotation_matrix):
         """Draws the simulation as wireframes on the screen using the provided simulation class
@@ -216,30 +256,44 @@ class Rendering:
         """
 
         for object in simulation.gameObjects:
-            pre_baked_points = []
-            pre_baked_colors = []
-            for point in object.points:
-                pre_baked_points.append(self.vec3tovec2(point, camera_rotation_matrix))
-                pre_baked_colors.append(self.getColor(point))
+            self.draw_object_as_wires(object, camera_rotation_matrix)
 
-            for face in object.faces:
+    def draw_object_as_wires(self, object, camera_rotation_matrix):
+        """
+        Draws the object as wireframes on the screen using the provided object and camera rotation matrix
 
-                if pre_baked_points[face[0] - 1] == (-1, -1) or pre_baked_points[face[1] - 1] == (-1, -1) or pre_baked_points[face[2] - 1] == (-1, -1):
-                    continue
+        Parameters
+        ----------
+        object : GameObject
+            The object to draw
+        camera_rotation_matrix : numpy.ndarray
+        """
 
-                face_2D = [
-                    pre_baked_points[face[0] - 1],
-                    pre_baked_points[face[1] - 1],
-                    pre_baked_points[face[2] - 1]]
-                colors = [
-                    pre_baked_colors[face[0] - 1],
-                    pre_baked_colors[face[1] - 1],
-                    pre_baked_colors[face[2] - 1]
-                ]
+        pre_baked_points = []
+        pre_baked_colors = []
+        for point in object.points:
+            pre_baked_points.append(self.vec3tovec2(point, camera_rotation_matrix))
+            pre_baked_colors.append(self.getColor(point))
 
-                pygame.draw.line(self.screen, colors[0], face_2D[0], face_2D[1], 1)
-                pygame.draw.line(self.screen, colors[1], face_2D[1], face_2D[2], 1)
-                pygame.draw.line(self.screen, colors[2], face_2D[2], face_2D[0], 1)
+        for face in object.faces:
+
+            if pre_baked_points[face[0] - 1] == (-1, -1) or pre_baked_points[face[1] - 1] == (-1, -1) or pre_baked_points[face[2] - 1] == (-1, -1):
+                continue
+
+            face_2D = [
+                pre_baked_points[face[0] - 1],
+                pre_baked_points[face[1] - 1],
+                pre_baked_points[face[2] - 1]]
+            colors = [
+                pre_baked_colors[face[0] - 1],
+                pre_baked_colors[face[1] - 1],
+                pre_baked_colors[face[2] - 1]
+            ]
+
+            pygame.draw.line(self.screen, colors[0], face_2D[0], face_2D[1], 1)
+            pygame.draw.line(self.screen, colors[1], face_2D[1], face_2D[2], 1)
+            pygame.draw.line(self.screen, colors[2], face_2D[2], face_2D[0], 1)
+
 
     # Main projection function: From world space to screen space
     def vec3tovec2(self, point, camera_rotation_matrix):

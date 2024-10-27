@@ -45,14 +45,15 @@ class Fluid:
         An array containing size in the x, y, and z directions
     """
 
-    def __init__(self, particles, position, size):
+    def __init__(self, particles, position, size, bounds_object):
 
         self.p_positions = np.array([particle.position for particle in particles])
         self.p_velocities = np.array([particle.velocity for particle in particles])
         self.p_masses = np.array([particle.mass for particle in particles])
 
-        self.position = position
-        self.size = size
+        self.bounds_object = bounds_object
+        self.position = np.array(position)
+        self.size = np.array(size)
 
     def update(self, dt):
         """Updates the fluid by calculating each particle's acceleration and moving the particles according to their velocity
@@ -67,6 +68,21 @@ class Fluid:
 
         # Gravity
         self.p_velocities -= np.array([0, 0.1, 0])
+
+        # Simulating a fountain
+        # find the particles that are in the center of the fluid (a cylinder in the middle of the fluid)
+        # Calculate the center of the fluid
+        center = self.size / 2
+        # Calculate the distances of the particles from the center, ignoring the height
+        distances = np.linalg.norm(self.p_positions[:, [0, 2]] - center[[0, 2]], axis=1)
+        # Define the radius of the cylinder
+        radius = min(self.size[[0, 2]]) / 5
+        # Find the particles that are in the center of the fluid
+        center_particles = np.where(distances < radius)
+        self.p_velocities[center_particles] += np.array([0, 0.2, 0])
+
+
+
 
         pos_test = self.p_positions + self.p_velocities * dt
 
@@ -84,9 +100,6 @@ class Fluid:
 
         self.p_positions = pos_test
 
-
-
-
     def applyParticleInteractions(self):
         """Calculates and applies the accelerations of all particles
 
@@ -99,6 +112,7 @@ class Fluid:
         """
 
         # Calculate the vectors between the particles
+
         vectors = self.p_positions[:, np.newaxis, :] - self.p_positions[np.newaxis, :, :]
 
         # Calculate the distances between the particles into a single value
@@ -114,6 +128,7 @@ class Fluid:
         accelerations = vectors * multiplier[:, :, np.newaxis]
 
         self.p_velocities += np.sum(accelerations, axis=1)
+
 
 class Particle:
     """A particle is a point in space with a velocity and a mass
@@ -162,7 +177,24 @@ def addFluid(nb_particles, position=[0, 0, 0], size=[10, 10, 10]):
         velocity = np.zeros(3)
         particles.append(Particle(particle_position, velocity))
 
-    fluid = Fluid(particles, position, size)
+    bounds_object = GameObject(np.array([
+        [0, 0, 0],
+        [0, 0, size[2]],
+        [0, size[1], 0],
+        [0, size[1], size[2]],
+        [size[0], 0, 0],
+        [size[0], 0, size[2]],
+        [size[0], size[1], 0],
+        [size[0], size[1], size[2]]
+    ]), np.array([
+    
+        
+        # No faces for now
+
+
+    ]))
+
+    fluid=Fluid(particles, position, size, bounds_object)
 
     return fluid
 
@@ -181,29 +213,29 @@ def addGameObject(fileName):
         The game object
     """
 
-    objectFile = open("obj_files/" + fileName, "r")
+    objectFile=open("obj_files/" + fileName, "r")
 
-    lines = objectFile.readlines()
-    pointLines = list(filter(lambda x: x[0] == "v" and x[1] == " ", lines))
+    lines=objectFile.readlines()
+    pointLines=list(filter(lambda x: x[0] == "v" and x[1] == " ", lines))
     for i in range(len(pointLines)):
-        pointLines[i] = pointLines[i][2:-2].split(" ")
+        pointLines[i]=pointLines[i][2:-2].split(" ")
         for j in range(len(pointLines[i])):
-            pointLines[i][j] = float(pointLines[i][j])
-    points = np.array(pointLines)
+            pointLines[i][j]=float(pointLines[i][j])
+    points=np.array(pointLines)
 
-    faceLines = list(filter(lambda x: x[0] == "f" and x[1] == " ", lines))
+    faceLines=list(filter(lambda x: x[0] == "f" and x[1] == " ", lines))
     for i in range(len(faceLines)):
-        faceLines[i] = faceLines[i][2:-2].split(" ")
-        facePoints = [
+        faceLines[i]=faceLines[i][2:-2].split(" ")
+        facePoints=[
             int(faceLines[i][0].split("/")[0]),
             int(faceLines[i][1].split("/")[0]),
             int(faceLines[i][2].split("/")[0]),
         ]
-        faceLines[i] = facePoints
+        faceLines[i]=facePoints
 
-    faces = np.array(faceLines)
+    faces=np.array(faceLines)
 
-    object = GameObject(points, faces)
+    object=GameObject(points, faces)
 
     objectFile.close()
 
