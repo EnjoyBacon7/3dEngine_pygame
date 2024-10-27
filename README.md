@@ -1,7 +1,7 @@
 # 3dEngine_pygame
  A pygame implementation of a simple 3d Engine
 
-![](./fluid_sim.mp4)
+https://github.com/user-attachments/assets/5c1256b0-fe40-4b3c-8bd2-861ccba4842f
 
 ## Setup
 
